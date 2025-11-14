@@ -422,8 +422,11 @@
                 <ul>
                     <li><a href="index.html">首页</a></li>
                     <li><a href="#announcements">公告</a></li>
+                    <li><a href="#members">成员</a></li>
+                    <li><a href="#about">关于</a></li>
                 </ul>
             </nav>
+            <button id="adminManageBtn" class="admin-login-btn" style="display: none;">账号管理</button>
             <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
         </div>
     </header>
@@ -431,7 +434,7 @@
     <!-- 主要内容 -->
     <main class="container">
         <!-- 返回首页按钮 -->
-        <a href="minecraft_pvp_guild.html" class="back-home-btn">返回首页</a>
+        <a href="index.html" class="back-home-btn">返回首页</a>
 
         <!-- 公告区域 -->
         <section class="announcements" id="announcements">
@@ -551,6 +554,37 @@
                     if (!Array.isArray(announcements)) {
                         throw new Error('公告数据格式错误');
                     }
+                    
+                    // 验证日期格式，修复格式不正确的日期
+                    announcements = announcements.map(announcement => {
+                        // 确保公告有ID
+                        if (!announcement.id) {
+                            announcement.id = Math.max(...announcements.map(a => a.id || 0)) + 1;
+                        }
+                        
+                        // 修复日期格式
+                        if (announcement.date && !/^\d{4}-\d{2}-\d{2}$/.test(announcement.date)) {
+                            const date = new Date(announcement.date);
+                            if (!isNaN(date.getTime())) {
+                                const year = date.getFullYear();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                announcement.date = `${year}-${month}-${day}`;
+                            } else {
+                                // 如果日期无效，使用当前日期
+                                const now = new Date();
+                                const year = now.getFullYear();
+                                const month = String(now.getMonth() + 1).padStart(2, '0');
+                                const day = String(now.getDate()).padStart(2, '0');
+                                announcement.date = `${year}-${month}-${day}`;
+                            }
+                        }
+                        
+                        return announcement;
+                    });
+                    
+                    // 保存修复后的数据
+                    localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
                 }
                 renderAnnouncements();
                 return true;
@@ -636,6 +670,20 @@
             document.getElementById('successModal').style.display = 'block';
         }
 
+        // 验证公告数据
+        function validateAnnouncementData(announcement) {
+            if (!announcement.title || announcement.title.trim() === '') {
+                return { valid: false, message: '公告标题不能为空' };
+            }
+            if (!announcement.content || announcement.content.trim() === '') {
+                return { valid: false, message: '公告内容不能为空' };
+            }
+            if (!announcement.date || !/^\d{4}-\d{2}-\d{2}$/.test(announcement.date)) {
+                return { valid: false, message: '公告日期格式不正确' };
+            }
+            return { valid: true, message: '' };
+        }
+
         // 保存公告（新增或编辑）
         function saveAnnouncement(event) {
             event.preventDefault();
@@ -643,40 +691,47 @@
             const title = document.getElementById('announcementTitle').value.trim();
             const content = document.getElementById('announcementContent').value.trim();
             
-            if (title && content) {
-                if (currentEditIndex === -1) {
-                    // 新增公告
-                    const now = new Date();
-                    const dateStr = now.toLocaleString('zh-CN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    });
-                    
-                    announcements.push({
-                        title: title,
-                        date: dateStr,
-                        content: content
-                    });
-                } else {
-                    // 编辑公告
-                    announcements[currentEditIndex].title = title;
-                    announcements[currentEditIndex].content = content;
-                }
-                
-                // 保存到本地存储
-                localStorage.setItem('announcements', JSON.stringify(announcements));
-                
-                // 关闭模态框并重新渲染公告列表
-                closeAnnouncementModalFunc();
-                renderAnnouncements();
-                
-                // 显示成功提示
-                showSuccessMessage(currentEditIndex === -1 ? '公告发布成功！' : '公告修改成功！');
+            // 创建日期对象并格式化为YYYY-MM-DD格式
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const newAnnouncement = {
+                title: title,
+                content: content,
+                date: dateStr
+            };
+            
+            // 验证公告数据
+            const validation = validateAnnouncementData(newAnnouncement);
+            if (!validation.valid) {
+                showSuccessMessage(validation.message);
+                return;
             }
+            
+            if (currentEditIndex === -1) {
+                // 新增公告
+                // 为新公告分配ID
+                const nextId = announcements.length > 0 ? Math.max(...announcements.map(a => a.id)) + 1 : 1;
+                newAnnouncement.id = nextId;
+                announcements.push(newAnnouncement);
+            } else {
+                // 编辑公告
+                announcements[currentEditIndex] = { ...announcements[currentEditIndex], ...newAnnouncement };
+            }
+            
+            // 保存到本地存储 - 使用与index.html相同的键名
+            localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
+            localStorage.setItem('fasClubNextAnnouncementId', (Math.max(...announcements.map(a => a.id)) + 1).toString());
+            
+            // 关闭模态框并重新渲染公告列表
+            closeAnnouncementModalFunc();
+            renderAnnouncements();
+            
+            // 显示成功提示
+            showSuccessMessage(currentEditIndex === -1 ? '公告发布成功！' : '公告修改成功！');
         }
 
         // 删除公告
@@ -702,6 +757,10 @@
 
         // 管理员登录状态
         let isAdminLoggedIn = false;
+        let currentAdminUser = '';
+        
+        // 初始化管理员账号
+        initAdminAccounts();
 
         // 显示/隐藏管理功能
         function toggleAdminFeatures() {
@@ -713,6 +772,10 @@
             // 切换登录/退出按钮文本
             const loginBtn = document.getElementById('adminLoginBtn');
             loginBtn.textContent = isAdminLoggedIn ? '退出登录' : '管理员登录';
+            
+            // 显示/隐藏账号管理按钮
+            const manageBtn = document.getElementById('adminManageBtn');
+            manageBtn.style.display = isAdminLoggedIn ? 'inline-block' : 'none';
         }
 
         // 打开管理员登录模态框
@@ -741,6 +804,46 @@
             document.getElementById('loginMessageModal').style.display = 'none';
         }
 
+        // 初始化管理员账号存储（如果不存在）
+        function initAdminAccounts() {
+            const accounts = JSON.parse(localStorage.getItem('adminAccounts'));
+            if (!accounts) {
+                // 创建默认管理员账号
+                const defaultAccounts = [
+                    { username: 'admin', password: 'admin123456', createdAt: new Date().toISOString() }
+                ];
+                localStorage.setItem('adminAccounts', JSON.stringify(defaultAccounts));
+            }
+        }
+
+        // 获取所有管理员账号
+        function getAdminAccounts() {
+            return JSON.parse(localStorage.getItem('adminAccounts')) || [];
+        }
+
+        // 添加管理员账号
+        function addAdminAccount(username, password) {
+            const accounts = getAdminAccounts();
+            // 检查用户名是否已存在
+            if (accounts.find(account => account.username === username)) {
+                return false;
+            }
+            // 添加新账号
+            accounts.push({
+                username,
+                password,
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('adminAccounts', JSON.stringify(accounts));
+            return true;
+        }
+
+        // 验证管理员账号
+        function validateAdminAccount(username, password) {
+            const accounts = getAdminAccounts();
+            return accounts.find(account => account.username === username && account.password === password);
+        }
+
         // 管理员登录处理
         function handleAdminLogin(event) {
             event.preventDefault();
@@ -748,22 +851,41 @@
             const password = document.getElementById('password').value;
 
             // 验证账号密码
-            if (username === 'admin' && password === 'admin123456') {
+            const account = validateAdminAccount(username, password);
+            if (account) {
                 isAdminLoggedIn = true;
+                currentAdminUser = username;
+                // 保存登录状态到localStorage
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                localStorage.setItem('currentAdminUser', username);
                 toggleAdminFeatures();
                 closeAdminLoginModal();
-                showLoginMessage('登录成功', '管理员登录成功！', true);
+                showLoginMessage('登录成功', `管理员 ${username} 登录成功！`, true);
             } else {
                 showLoginMessage('登录失败', '账号或密码错误！', false);
             }
         }
 
-     // 页面加载完成后渲染公告
+     // 检查并恢复登录状态
+        function checkLoginStatus() {
+            // 从localStorage恢复登录状态
+            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+            currentAdminUser = localStorage.getItem('currentAdminUser') || '';
+            
+            // 更新UI
+            toggleAdminFeatures();
+        }
+
+        // 页面加载完成后渲染公告
         document.addEventListener('DOMContentLoaded', function() {
             loadAnnouncementsFromStorage();
             renderAnnouncements();
-            // 初始隐藏管理功能
-            toggleAdminFeatures();
+            
+            // 初始化管理员账号
+            initAdminAccounts();
+            
+            // 检查并恢复登录状态
+            checkLoginStatus();
 
             // 为管理员登录/退出按钮添加点击事件监听器
             const loginBtn = document.getElementById('adminLoginBtn');
@@ -771,11 +893,23 @@
                 if (isAdminLoggedIn) {
                     // 退出登录
                     isAdminLoggedIn = false;
+                    currentAdminUser = '';
+                    // 清除localStorage中的登录状态
+                    localStorage.setItem('isAdminLoggedIn', 'false');
+                    localStorage.removeItem('currentAdminUser');
                     toggleAdminFeatures();
                     showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
                 } else {
                     // 打开登录模态框
                     openAdminLoginModal();
+                }
+            });
+            
+            // 为账号管理按钮添加点击事件监听器
+            const manageBtn = document.getElementById('adminManageBtn');
+            manageBtn.addEventListener('click', function() {
+                if (isAdminLoggedIn) {
+                    window.location.href = 'admin_management.html';
                 }
             });
             // 为管理员登录表单添加提交事件监听器
@@ -822,6 +956,23 @@
                     closeModal('successModal');
                 } else if (event.target === loginMessageModal) {
                     closeLoginMessageModal();
+                }
+            });
+
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'loggedInAdmin') {
+                    if (event.newValue) {
+                        // 登录状态
+                        currentAdminUser = JSON.parse(event.newValue);
+                        isAdminLoggedIn = true;
+                        toggleAdminFeatures();
+                    } else {
+                        // 退出状态
+                        currentAdminUser = null;
+                        isAdminLoggedIn = false;
+                        toggleAdminFeatures();
+                    }
                 }
             });
         });</script>

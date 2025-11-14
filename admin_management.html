@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员账号管理 - Floating and Sinking 浮夜沉月</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* 梵高风格动态背景 */
+        body {
+            background-color: #000;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 0, 139, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(148, 0, 211, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-size: 300% 300%;
+            animation: vanGoghShift 20s ease infinite;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        @keyframes vanGoghShift {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 添加梵高风格的纹理效果 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 215, 0, 0.05) 10px, rgba(255, 215, 0, 0.05) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0, 0, 139, 0.05) 10px, rgba(0, 0, 139, 0.05) 20px);
+            background-size: 200px 200px;
+            animation: textureMove 30s linear infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        @keyframes textureMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(200px, 200px); }
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .fas-logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 导航栏样式 */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav ul li a:hover {
+            color: #667eea;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* 管理员登录按钮样式 */
+        .admin-login-btn {
+            padding: 0.5rem 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .admin-login-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 管理页面样式 */
+        .management-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        h1, h2 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            box-sizing: border-box;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .logout-btn {
+            background-color: rgba(255, 67, 54, 0.8);
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(218, 25, 11, 0.8);
+        }
+
+        .accounts-list {
+            margin-top: 2rem;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 5px;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .account-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .account-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .message {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: rgba(139, 195, 74, 0.2);
+            color: #8bc34a;
+            border: 1px solid rgba(139, 195, 74, 0.4);
+        }
+
+        .error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.4);
+        }
+
+        /* 返回首页按钮样式 */
+        .back-home-btn {
+            display: block;
+            margin: 2rem auto 0;
+            text-align: center;
+            width: 200px;
+            background-color: rgba(102, 126, 234, 0.8);
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 15% auto;
+            padding: 2rem;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .modal-buttons {
+            margin-top: 1.5rem;
+            text-align: right;
+        }
+
+        .modal-buttons button {
+            margin-left: 10px;
+        }
+
+        .success-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .success-modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 15% auto;
+            padding: 2rem;
+            border: 1px solid rgba(139, 195, 74, 0.5);
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            color: #ffffff;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .success-modal-content .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #8bc34a;
+        }
+
+        /* 删除确认弹窗按钮样式 */
+        .cancel-btn {
+            background-color: #666;
+            box-shadow: 0 2px 10px rgba(102, 102, 102, 0.3);
+        }
+
+        .cancel-btn:hover {
+            background-color: #555;
+            box-shadow: 0 4px 15px rgba(102, 102, 102, 0.5);
+        }
+
+        .delete-btn {
+            background-color: rgba(255, 67, 54, 0.8);
+            box-shadow: 0 2px 10px rgba(255, 67, 54, 0.3);
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(218, 25, 11, 0.8);
+            box-shadow: 0 4px 15px rgba(255, 67, 54, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header>
+        <div class="fas-logo">Floating and Sinking</div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <nav>
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="announcements.html">公告</a></li>
+                    <li><a href="#members">成员</a></li>
+                    <li><a href="#about">关于</a></li>
+                </ul>
+            </nav>
+            <button id="adminManageBtn" class="admin-login-btn" style="display: none;">账号管理</button>
+            <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <div class="management-container">
+            <h1>管理员账号管理</h1>
+            <div id="message" class="message" style="display: none;"></div>
+            
+            <!-- 添加新管理员账号表单 -->
+            <div>
+                <h2>添加新管理员账号</h2>
+                <form id="addAdminForm">
+                    <div class="form-group">
+                        <label for="newUsername">用户名:</label>
+                        <input type="text" id="newUsername" name="newUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">密码:</label>
+                        <input type="password" id="newPassword" name="newPassword" required>
+                    </div>
+                    <button type="submit">添加管理员</button>
+                </form>
+            </div>
+            
+            <!-- 现有管理员账号列表 -->
+            <div class="accounts-list">
+                <h2>现有管理员账号</h2>
+                <div id="accountsList"></div>
+            </div>
+            
+            <!-- 退出登录按钮 -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button id="logoutBtn" class="logout-btn">退出登录</button>
+            </div>
+            
+            <!-- 返回首页按钮 -->
+            <a href="index.html">
+                <button class="back-home-btn">返回首页</button>
+            </a>
+        </div>
+    </main>
+
+    <!-- 修改名称弹窗 -->
+    <div id="updateUsernameModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>修改管理员名称</h2>
+            <form id="updateUsernameForm">
+                <div class="form-group">
+                    <label for="newUsernameInput">新用户名:</label>
+                    <input type="text" id="newUsernameInput" name="newUsernameInput" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="cancelUpdateUsername">取消</button>
+                    <button type="submit">确认修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div id="updatePasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>修改管理员密码</h2>
+            <form id="updatePasswordForm">
+                <div class="form-group">
+                    <label for="newPasswordInput">新密码:</label>
+                    <input type="password" id="newPasswordInput" name="newPasswordInput" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="cancelUpdatePassword">取消</button>
+                    <button type="submit">确认修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 成功提示弹窗 -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">✓</div>
+            <h2>操作成功</h2>
+            <p id="successMessage"></p>
+            <button id="closeSuccessModal">确定</button>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>删除确认</h2>
+            <p id="deleteConfirmMessage"></p>
+            <div class="modal-buttons">
+                <button id="cancelDelete" class="cancel-btn">取消</button>
+                <button id="confirmDelete" class="delete-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 管理员登录状态
+        let isAdminLoggedIn = false;
+        let currentAdminUser = '';
+        // 当前操作的用户名
+        let currentOperationUser = '';
+        
+        // 初始化管理员账号存储
+        function initAdminAccounts() {
+            const accounts = JSON.parse(localStorage.getItem('adminAccounts'));
+            if (!accounts) {
+                // 创建默认管理员账号
+                const defaultAccounts = [
+                    { username: 'admin', password: 'admin123456', createdAt: new Date().toISOString() }
+                ];
+                localStorage.setItem('adminAccounts', JSON.stringify(defaultAccounts));
+            }
+        }
+
+        // 获取所有管理员账号
+        function getAdminAccounts() {
+            return JSON.parse(localStorage.getItem('adminAccounts')) || [];
+        }
+
+        // 添加管理员账号
+        function addAdminAccount(username, password) {
+            const accounts = getAdminAccounts();
+            // 检查用户名是否已存在
+            if (accounts.find(account => account.username === username)) {
+                return false;
+            }
+            // 添加新账号
+            accounts.push({
+                username,
+                password,
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('adminAccounts', JSON.stringify(accounts));
+            return true;
+        }
+
+        // 删除管理员账号
+        function deleteAccount(username) {
+            // 不能删除当前登录的账号
+            if (username === currentAdminUser) {
+                showMessage('不能删除当前登录的账号！', false);
+                return;
+            }
+
+            // 设置当前操作的用户名
+            currentOperationUser = username;
+            // 显示删除确认弹窗
+            document.getElementById('deleteConfirmMessage').textContent = `确定要删除账号 "${username}" 吗？此操作不可恢复。`;
+            document.getElementById('deleteConfirmModal').style.display = 'block';
+        }
+
+        // 修改管理员账号名称
+        function updateUsername(oldUsername) {
+            currentOperationUser = oldUsername;
+            document.getElementById('updateUsernameModal').style.display = 'block';
+            document.getElementById('newUsernameInput').focus();
+        }
+
+        // 修改管理员账号密码
+        function updatePassword(username) {
+            currentOperationUser = username;
+            document.getElementById('updatePasswordModal').style.display = 'block';
+            document.getElementById('newPasswordInput').focus();
+        }
+
+        // 显示成功弹窗
+        function showSuccessModal(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').style.display = 'block';
+        }
+
+        // 关闭所有弹窗
+        function closeAllModals() {
+            document.getElementById('updateUsernameModal').style.display = 'none';
+            document.getElementById('updatePasswordModal').style.display = 'none';
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            document.getElementById('successModal').style.display = 'none';
+            // 清空表单
+            document.getElementById('updateUsernameForm').reset();
+            document.getElementById('updatePasswordForm').reset();
+        }
+
+        // 显示消息
+        function showMessage(text, isSuccess) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageDiv.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // 渲染管理员账号列表
+        function renderAccountsList() {
+            const accounts = getAdminAccounts();
+            const accountsListDiv = document.getElementById('accountsList');
+            
+            if (accounts.length === 0) {
+                accountsListDiv.innerHTML = '<p>暂无管理员账号</p>';
+                return;
+            }
+            
+            let html = '';
+            accounts.forEach(account => {
+                const createdAt = new Date(account.createdAt).toLocaleString();
+                // 不能删除当前登录的账号
+                const isCurrentUser = account.username === currentAdminUser;
+                html += `
+                    <div class="account-item">
+                        <strong>用户名:</strong> ${account.username}<br>
+                        <strong>创建时间:</strong> ${createdAt}<br><br>
+                        <button onclick="updateUsername('${account.username}')">修改名称</button>
+                        <button onclick="updatePassword('${account.username}')">修改密码</button>
+                        <button onclick="deleteAccount('${account.username}')" ${isCurrentUser ? 'disabled' : ''} ${isCurrentUser ? 'title="不能删除当前登录的账号"' : ''}>
+                            删除账号
+                        </button>
+                    </div>
+                `;
+            });
+            
+            accountsListDiv.innerHTML = html;
+        }
+
+        // 退出登录
+        function logout() {
+            isAdminLoggedIn = false;
+            currentAdminUser = '';
+            // 更新localStorage中的登录状态
+            localStorage.setItem('isAdminLoggedIn', 'false');
+            localStorage.removeItem('currentAdminUser');
+            // 更新导航栏按钮
+            updateLoginButton();
+            showMessage('已退出登录', true);
+            // 重定向到首页
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // 更新登录按钮文本
+        function updateLoginButton() {
+            const loginBtn = document.getElementById('adminLoginBtn');
+            if (loginBtn) {
+                if (isAdminLoggedIn) {
+                    loginBtn.textContent = '退出登录';
+                    loginBtn.onclick = logout;
+                } else {
+                    loginBtn.textContent = '管理员登录';
+                    // 这里可以添加打开登录模态框的逻辑
+                }
+            }
+        }
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+            currentAdminUser = localStorage.getItem('currentAdminUser') || '';
+            
+            if (!isAdminLoggedIn) {
+                showMessage('请先登录管理员账号', false);
+                // 重定向到首页
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return false;
+            }
+            
+            return true;
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化管理员账号
+            initAdminAccounts();
+            
+            // 检查登录状态
+            if (!checkLoginStatus()) {
+                return;
+            }
+            
+            // 更新登录按钮
+            updateLoginButton();
+            
+            // 渲染账号列表
+            renderAccountsList();
+            
+            // 添加管理员账号表单提交事件
+            document.getElementById('addAdminForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const username = document.getElementById('newUsername').value;
+                const password = document.getElementById('newPassword').value;
+                
+                if (addAdminAccount(username, password)) {
+                    showMessage('管理员账号添加成功！', true);
+                    // 清空表单
+                    this.reset();
+                    // 重新渲染账号列表
+                    renderAccountsList();
+                } else {
+                    showMessage('用户名已存在！', false);
+                }
+            });
+            
+            // 退出登录按钮事件
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            // 弹窗事件监听器
+            
+            // 关闭按钮点击事件
+            document.querySelectorAll('.close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', closeAllModals);
+            });
+
+            // 取消按钮点击事件
+            document.getElementById('cancelUpdateUsername').addEventListener('click', closeAllModals);
+            document.getElementById('cancelUpdatePassword').addEventListener('click', closeAllModals);
+
+            // 成功弹窗关闭按钮点击事件
+            document.getElementById('closeSuccessModal').addEventListener('click', closeAllModals);
+
+            // 点击弹窗外部关闭弹窗
+            window.addEventListener('click', function(event) {
+                const modals = [
+                    document.getElementById('updateUsernameModal'),
+                    document.getElementById('updatePasswordModal'),
+                    document.getElementById('successModal'),
+                    document.getElementById('deleteConfirmModal')
+                ];
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        closeAllModals();
+                    }
+                });
+            });
+
+            // 修改名称表单提交事件
+            document.getElementById('updateUsernameForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const oldUsername = currentOperationUser;
+                const newUsername = document.getElementById('newUsernameInput').value;
+                
+                if (!newUsername) {
+                    showMessage('用户名不能为空！', false);
+                    return;
+                }
+
+                const accounts = getAdminAccounts();
+                // 检查新用户名是否已存在
+                if (accounts.find(account => account.username === newUsername && account.username !== oldUsername)) {
+                    showMessage('新用户名已存在！', false);
+                    return;
+                }
+
+                // 更新用户名
+                const updatedAccounts = accounts.map(account => {
+                    if (account.username === oldUsername) {
+                        return { ...account, username: newUsername };
+                    }
+                    return account;
+                });
+
+                localStorage.setItem('adminAccounts', JSON.stringify(updatedAccounts));
+                
+                // 如果修改的是当前登录用户的名称，更新当前用户信息
+                if (oldUsername === currentAdminUser) {
+                    currentAdminUser = newUsername;
+                    localStorage.setItem('currentAdminUser', newUsername);
+                }
+
+                // 关闭修改名称弹窗
+                document.getElementById('updateUsernameModal').style.display = 'none';
+                // 显示成功弹窗
+                showSuccessModal(`账号名称已成功从 "${oldUsername}" 修改为 "${newUsername}"！`);
+                // 渲染账号列表
+                renderAccountsList();
+            });
+
+            // 修改密码表单提交事件
+            document.getElementById('updatePasswordForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const username = currentOperationUser;
+                const newPassword = document.getElementById('newPasswordInput').value;
+                
+                if (!newPassword) {
+                    showMessage('密码不能为空！', false);
+                    return;
+                }
+
+                const accounts = getAdminAccounts();
+                // 更新密码
+                const updatedAccounts = accounts.map(account => {
+                    if (account.username === username) {
+                        return { ...account, password: newPassword };
+                    }
+                    return account;
+                });
+
+                localStorage.setItem('adminAccounts', JSON.stringify(updatedAccounts));
+                
+                // 关闭修改密码弹窗
+                document.getElementById('updatePasswordModal').style.display = 'none';
+                // 显示成功弹窗
+                showSuccessModal(`账号 "${username}" 的密码已成功修改！`);
+                // 渲染账号列表
+                renderAccountsList();
+            });
+
+            // 删除确认弹窗按钮事件
+            document.getElementById('cancelDelete').addEventListener('click', closeAllModals);
+            
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                // 执行删除操作
+                const accounts = getAdminAccounts();
+                const updatedAccounts = accounts.filter(account => account.username !== currentOperationUser);
+                localStorage.setItem('adminAccounts', JSON.stringify(updatedAccounts));
+                
+                // 关闭确认弹窗并显示成功提示
+                document.getElementById('deleteConfirmModal').style.display = 'none';
+                document.getElementById('successMessage').textContent = `账号 "${currentOperationUser}" 已成功删除！`;
+                document.getElementById('successModal').style.display = 'block';
+                
+                // 重新渲染账号列表
+                renderAccountsList();
+            });
+
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                // 监听其他页面的登录状态变化
+                if (event.key === 'loggedInAdmin') {
+                    if (event.newValue) {
+                        // 登录状态
+                        const adminData = JSON.parse(event.newValue);
+                        isAdminLoggedIn = true;
+                        currentAdminUser = adminData.username;
+                        // 更新localStorage以匹配当前页面的存储方式
+                        localStorage.setItem('isAdminLoggedIn', 'true');
+                        localStorage.setItem('currentAdminUser', currentAdminUser);
+                        updateLoginButton();
+                    } else {
+                        // 退出状态
+                        isAdminLoggedIn = false;
+                        currentAdminUser = '';
+                        // 更新localStorage以匹配当前页面的存储方式
+                        localStorage.setItem('isAdminLoggedIn', 'false');
+                        localStorage.removeItem('currentAdminUser');
+                        updateLoginButton();
+                        // 重定向到首页
+                        showMessage('管理员已退出登录', false);
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

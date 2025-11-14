@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物列表 - Floating and Sinking 浮夜沉月</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background-color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
+        /* 梵高风格动态背景 */
+        body {
+            background-color: #000;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 0, 139, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(148, 0, 211, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-size: 300% 300%;
+            animation: vanGoghShift 20s ease infinite;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        @keyframes vanGoghShift {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 添加梵高风格的纹理效果 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 215, 0, 0.05) 10px, rgba(255, 215, 0, 0.05) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0, 0, 139, 0.05) 10px, rgba(0, 0, 139, 0.05) 20px);
+            background-size: 200px 200px;
+            animation: textureMove 30s linear infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        @keyframes textureMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(200px, 200px); }
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .fas-logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 导航栏样式 */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav ul li a:hover {
+            color: #667eea;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* 管理员登录按钮样式 */
+        .admin-login-btn {
+            padding: 0.5rem 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .admin-login-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 人物列表区域样式 */
+        .characters {
+            background-color: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #667eea;
+        }
+
+        .characters h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .character-item {
+            background-color: rgba(102, 126, 234, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .character-item:hover {
+            transform: translateX(5px);
+        }
+
+        .character-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .character-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .character-info {
+            margin-bottom: 0.5rem;
+            color: #cbd5e0;
+        }
+
+        .character-description {
+            margin-bottom: 1rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        /* 按钮样式 */
+        .member-action-btn {
+            padding: 0.5rem 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .member-action-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .member-action-btn.delete {
+            background-color: rgba(255, 67, 54, 0.8);
+            box-shadow: 0 2px 10px rgba(255, 67, 54, 0.3);
+        }
+
+        .member-action-btn.delete:hover {
+            background-color: rgba(218, 25, 11, 0.8);
+            box-shadow: 0 4px 15px rgba(255, 67, 54, 0.5);
+        }
+
+        /* 控制按钮样式 */
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: flex-end;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            border: 2px solid #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 2rem;
+            font-weight: bold;
+            position: absolute;
+            right: 1rem;
+            top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 5px;
+            background-color: rgba(26, 26, 46, 0.8);
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* 成功提示模态框样式 */
+        .success-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .success-modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            border: 2px solid #8bc34a;
+            box-shadow: 0 10px 30px rgba(139, 195, 74, 0.3);
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #8bc34a;
+        }
+
+        /* 确认对话框样式 */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .confirm-modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            border: 2px solid #ffc107;
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.3);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .cancel-btn {
+            background-color: #666;
+            box-shadow: 0 2px 10px rgba(102, 102, 102, 0.3);
+        }
+
+        .cancel-btn:hover {
+            background-color: #555;
+            box-shadow: 0 4px 15px rgba(102, 102, 102, 0.5);
+        }
+
+        .delete-btn {
+            background-color: rgba(255, 67, 54, 0.8);
+            box-shadow: 0 2px 10px rgba(255, 67, 54, 0.3);
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(218, 25, 11, 0.8);
+            box-shadow: 0 4px 15px rgba(255, 67, 54, 0.5);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+            }
+
+            .member-action-btn {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header>
+        <div class="fas-logo">Floating and Sinking</div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <nav>
+                <ul>
+                    <li><a href="index.html#home">首页</a></li>
+                    <li><a href="index.html#announcements">公告</a></li>
+                    <li><a href="index.html#members">成员</a></li>
+                    <li><a href="index.html#about">关于</a></li>
+                </ul>
+            </nav>
+            <button id="adminManageBtn" class="admin-login-btn" style="display: none;">账号管理</button>
+            <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 控制按钮 -->
+        <div class="control-buttons">
+            <button id="addCharacterBtn" class="member-action-btn admin-only">添加人物</button>
+        </div>
+
+        <!-- 人物列表 -->
+        <div class="characters">
+            <h2>人物列表</h2>
+            <div id="charactersList"></div>
+        </div>
+    </main>
+
+    <!-- 人物信息模态框 -->
+    <div id="characterModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="characterModalTitle">添加人物</h2>
+            <form id="characterForm">
+                <div class="form-group">
+                    <label for="characterName">姓名</label>
+                    <input type="text" id="characterName" name="characterName" required>
+                </div>
+                <div class="form-group">
+                    <label for="characterTitle">称号</label>
+                    <input type="text" id="characterTitle" name="characterTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="characterRole">角色</label>
+                    <input type="text" id="characterRole" name="characterRole" required>
+                </div>
+                <div class="form-group">
+                    <label for="characterDescription">描述</label>
+                    <textarea id="characterDescription" name="characterDescription" required></textarea>
+                </div>
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button type="submit" class="member-action-btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <span class="close">&times;</span>
+            <h2 id="confirmTitle">确认删除</h2>
+            <p id="confirmMessage">确定要删除此人物吗？此操作不可撤销</p>
+            <div class="modal-buttons">
+                <button id="confirmCancelBtn" class="member-action-btn cancel-btn">取消</button>
+                <button id="confirmDeleteBtn" class="member-action-btn delete-btn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功提示模态框 -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">✓</div>
+            <h2>操作成功</h2>
+            <p id="successMessage"></p>
+            <button id="successOkBtn" class="member-action-btn">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 人物数据
+        let characters = [
+            {
+                id: 1,
+                name: '角色1',
+                title: '称号1',
+                role: '主要角色',
+                description: '这是角色1的描述。'
+            },
+            {
+                id: 2,
+                name: '角色2',
+                title: '称号2',
+                role: '次要角色',
+                description: '这是角色2的描述。'
+            },
+            {
+                id: 3,
+                name: '角色3',
+                title: '称号3',
+                role: '配角',
+                description: '这是角色3的描述。'
+            }
+        ];
+
+        let nextCharacterId = characters.length + 1;
+
+        // 获取DOM元素
+        const charactersList = document.getElementById('charactersList');
+        const addCharacterBtn = document.getElementById('addCharacterBtn');
+        const characterModal = document.getElementById('characterModal');
+        const closeCharacterModal = characterModal.querySelector('.close');
+        const characterForm = document.getElementById('characterForm');
+        const characterModalTitle = document.getElementById('characterModalTitle');
+        const characterName = document.getElementById('characterName');
+        const characterTitle = document.getElementById('characterTitle');
+        const characterRole = document.getElementById('characterRole');
+        const characterDescription = document.getElementById('characterDescription');
+
+        // 确认对话框相关DOM元素
+        const confirmModal = document.getElementById('confirmModal');
+        const closeConfirmModal = confirmModal.querySelector('.close');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const confirmMessage = document.getElementById('confirmMessage');
+
+        // 成功提示模态框相关DOM元素
+        const successModal = document.getElementById('successModal');
+        const closeSuccessModal = document.getElementById('successOkBtn');
+        const successMessage = document.getElementById('successMessage');
+
+        // 当前编辑的人物ID
+        let currentCharacterId = null;
+        // 当前待删除的人物ID
+        let currentDeleteId = null;
+
+        // 渲染人物列表
+        function renderCharacters() {
+            charactersList.innerHTML = '';
+            
+            // 如果没有人物，显示提示信息
+            if (characters.length === 0) {
+                charactersList.innerHTML = '<p style="text-align: center; color: #94a3b8; font-style: italic; margin: 2rem 0;">暂无人物</p>';
+                return;
+            }
+            
+            characters.forEach(character => {
+                const characterItem = document.createElement('div');
+                characterItem.className = 'character-item';
+                characterItem.innerHTML = `
+                    <div class="character-title">${character.name} - ${character.title}</div>
+                    <div class="character-info"><strong>角色:</strong> ${character.role}</div>
+                    <div class="character-description">${character.description}</div>
+                    <div style="margin-top: 1rem; text-align: right;">
+                        <button class="member-action-btn" onclick="editCharacter(${character.id})">修改</button>
+                        <button class="member-action-btn delete" onclick="deleteCharacter(${character.id})">删除</button>
+                    </div>
+                `;
+                charactersList.appendChild(characterItem);
+            });
+        }
+
+        // 打开人物模态框
+        function openCharacterModal() {
+            characterModal.style.display = 'block';
+        }
+
+        // 关闭人物模态框
+        function closeCharacterModalFunc() {
+            characterModal.style.display = 'none';
+            characterForm.reset();
+            currentCharacterId = null;
+            characterModalTitle.textContent = '添加人物';
+        }
+
+        // 添加人物
+        function addCharacter() {
+            characterModalTitle.textContent = '添加人物';
+            openCharacterModal();
+        }
+
+        // 编辑人物
+        function editCharacter(id) {
+            const character = characters.find(c => c.id === id);
+            if (character) {
+                currentCharacterId = id;
+                characterModalTitle.textContent = '修改人物';
+                characterName.value = character.name;
+                characterTitle.value = character.title;
+                characterRole.value = character.role;
+                characterDescription.value = character.description;
+                openCharacterModal();
+            }
+        }
+
+        // 删除人物
+        function deleteCharacter(id) {
+            currentDeleteId = id;
+            const character = characters.find(c => c.id === id);
+            if (character) {
+                confirmMessage.textContent = `确定要删除人物 "${character.name}" 吗？此操作不可撤销`;
+                confirmModal.style.display = 'block';
+            }
+        }
+
+        // 确认删除
+        function confirmDelete() {
+            if (currentDeleteId !== null) {
+                characters = characters.filter(c => c.id !== currentDeleteId);
+                renderCharacters();
+                showSuccessMessage('人物已成功删除');
+                closeConfirmModalFunc();
+            }
+        }
+
+        // 关闭确认对话框
+        function closeConfirmModalFunc() {
+            confirmModal.style.display = 'none';
+            currentDeleteId = null;
+        }
+
+        // 显示成功消息
+        function showSuccessMessage(message) {
+            successMessage.textContent = message;
+            successModal.style.display = 'block';
+        }
+
+        // 关闭成功消息
+        function closeSuccessMessage() {
+            successModal.style.display = 'none';
+        }
+
+        // 保存人物
+        characterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newCharacter = {
+                name: characterName.value.trim(),
+                title: characterTitle.value.trim(),
+                role: characterRole.value.trim(),
+                description: characterDescription.value.trim()
+            };
+            
+            if (currentCharacterId) {
+                // 编辑现有人物
+                const index = characters.findIndex(c => c.id === currentCharacterId);
+                if (index !== -1) {
+                    characters[index] = { ...characters[index], ...newCharacter };
+                    showSuccessMessage('人物信息已成功更新');
+                }
+            } else {
+                // 添加新人物
+                newCharacter.id = nextCharacterId;
+                characters.push(newCharacter);
+                nextCharacterId++;
+                showSuccessMessage('人物已成功添加');
+            }
+            
+            // 重新渲染人物列表
+            renderCharacters();
+            // 关闭模态框
+            closeCharacterModalFunc();
+        });
+
+        // 事件监听器
+        addCharacterBtn.addEventListener('click', addCharacter);
+        closeCharacterModal.addEventListener('click', closeCharacterModalFunc);
+        closeConfirmModal.addEventListener('click', closeConfirmModalFunc);
+        confirmCancelBtn.addEventListener('click', closeConfirmModalFunc);
+        confirmDeleteBtn.addEventListener('click', confirmDelete);
+        closeSuccessModal.addEventListener('click', closeSuccessMessage);
+
+        // 点击模态框外部关闭模态框
+        window.addEventListener('click', function(event) {
+            if (event.target === characterModal) {
+                closeCharacterModalFunc();
+            } else if (event.target === confirmModal) {
+                closeConfirmModalFunc();
+            } else if (event.target === successModal) {
+                closeSuccessMessage();
+            }
+        });
+
+        // 页面加载时渲染人物列表
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCharacters();
+        });
+    </script>
+    
+    <!-- 返回首页按钮 -->
+    <div style="text-align: center; margin: 2rem 0;">
+        <button class="btn" onclick="window.location.href='index.html'">返回首页</button>
+    </div>
+
+    <!-- 管理员登录模态框 -->
+    <div id="adminLoginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>管理员登录</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">账号:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码:</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" id="togglePassword" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn confirm">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 登录消息模态框 -->
+    <div id="loginMessageModal" class="modal">
+        <div class="modal-content">
+            <h2 id="loginMessageTitle">登录消息</h2>
+            <div id="loginMessage"></div>
+            <button id="closeLoginMessageModal" class="btn confirm">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 管理员账号数据
+        let adminAccounts = [];
+        let isAdminLoggedIn = false;
+        let currentAdminUser = null;
+
+        // 初始化管理员账号
+        function initAdminAccounts() {
+            // 从localStorage加载管理员账号
+            const savedAccounts = localStorage.getItem('adminAccounts');
+            if (savedAccounts) {
+                adminAccounts = JSON.parse(savedAccounts);
+            } else {
+                // 默认管理员账号
+                adminAccounts = [
+                    { username: 'admin', password: '123456', email: 'admin@example.com' }
+                ];
+                localStorage.setItem('adminAccounts', JSON.stringify(adminAccounts));
+            }
+        }
+
+        // 切换管理员功能显示
+        function toggleAdminFeatures() {
+            const adminOnlyElements = document.querySelectorAll('.admin-only');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const adminManageBtn = document.getElementById('adminManageBtn');
+            
+            if (isAdminLoggedIn) {
+                // 显示管理员功能
+                adminOnlyElements.forEach(element => {
+                    element.style.display = 'block';
+                });
+                adminLoginBtn.textContent = '退出登录';
+                adminManageBtn.style.display = 'block';
+            } else {
+                // 隐藏管理员功能
+                adminOnlyElements.forEach(element => {
+                    element.style.display = 'none';
+                });
+                adminLoginBtn.textContent = '管理员登录';
+                adminManageBtn.style.display = 'none';
+            }
+        }
+
+        // 打开管理员登录模态框
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'block';
+        }
+
+        // 关闭管理员登录模态框
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+            // 重置表单
+            document.getElementById('adminLoginForm').reset();
+        }
+
+        // 显示登录消息
+        function showLoginMessage(title, message) {
+            document.getElementById('loginMessageTitle').textContent = title;
+            document.getElementById('loginMessage').textContent = message;
+            document.getElementById('loginMessageModal').style.display = 'block';
+        }
+
+        // 关闭登录消息模态框
+        function closeLoginMessageModal() {
+            document.getElementById('loginMessageModal').style.display = 'none';
+        }
+
+        // 切换密码显示/隐藏
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '🙈';
+        }
+
+        // 初始化管理员功能
+        document.addEventListener('DOMContentLoaded', function() {
+            initAdminAccounts();
+            
+            // 检查登录状态
+            const loggedInUser = localStorage.getItem('loggedInAdmin');
+            if (loggedInUser) {
+                currentAdminUser = JSON.parse(loggedInUser);
+                isAdminLoggedIn = true;
+                toggleAdminFeatures();
+            }
+
+            // 登录按钮事件
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            adminLoginBtn.addEventListener('click', function() {
+                if (isAdminLoggedIn) {
+                    // 退出登录
+                    localStorage.removeItem('loggedInAdmin');
+                    isAdminLoggedIn = false;
+                    currentAdminUser = null;
+                    toggleAdminFeatures();
+                } else {
+                    // 打开登录模态框
+                    openAdminLoginModal();
+                }
+            });
+
+            // 登录表单提交
+            const adminLoginForm = document.getElementById('adminLoginForm');
+            adminLoginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // 查找管理员账号
+                const admin = adminAccounts.find(account => account.username === username && account.password === password);
+                
+                if (admin) {
+                    // 登录成功
+                    currentAdminUser = admin;
+                    isAdminLoggedIn = true;
+                    localStorage.setItem('loggedInAdmin', JSON.stringify(admin));
+                    toggleAdminFeatures();
+                    closeAdminLoginModal();
+                    showLoginMessage('登录成功', '欢迎回来，管理员！');
+                } else {
+                    // 登录失败
+                    showLoginMessage('登录失败', '账号或密码错误，请重试。');
+                }
+            });
+
+            // 密码显示/隐藏
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
+
+            // 关闭消息模态框
+            const closeLoginMessageBtn = document.getElementById('closeLoginMessageModal');
+            closeLoginMessageBtn.addEventListener('click', closeLoginMessageModal);
+
+            // 点击模态框外部关闭模态框
+            window.addEventListener('click', function(event) {
+                if (event.target.id === 'adminLoginModal') {
+                    closeAdminLoginModal();
+                } else if (event.target.id === 'loginMessageModal') {
+                    closeLoginMessageModal();
+                }
+            });
+
+            // 点击关闭按钮
+            document.querySelector('#adminLoginModal .close').addEventListener('click', closeAdminLoginModal);
+
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'loggedInAdmin') {
+                    if (event.newValue) {
+                        // 登录状态
+                        currentAdminUser = JSON.parse(event.newValue);
+                        isAdminLoggedIn = true;
+                        toggleAdminFeatures();
+                    } else {
+                        // 退出状态
+                        currentAdminUser = null;
+                        isAdminLoggedIn = false;
+                        toggleAdminFeatures();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
