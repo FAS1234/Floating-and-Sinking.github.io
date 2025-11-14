@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating and Sinking 浮夜沉月</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background-color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
+        /* 梵高风格动态背景 */
+        body {
+            background-color: #000;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 0, 139, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(148, 0, 211, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-size: 300% 300%;
+            animation: vanGoghShift 20s ease infinite;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        @keyframes vanGoghShift {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 添加梵高风格的纹理效果 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 215, 0, 0.05) 10px, rgba(255, 215, 0, 0.05) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0, 0, 139, 0.05) 10px, rgba(0, 0, 139, 0.05) 20px);
+            background-size: 200px 200px;
+            animation: textureMove 30s linear infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        @keyframes textureMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(200px, 200px); }
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .fas-logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 导航栏样式 */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav ul li a:hover {
+            color: #667eea;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* 管理员登录按钮样式 */
+        .admin-login-btn {
+            padding: 0.5rem 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .admin-login-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 英雄区域样式 */
+        .hero-section {
+            text-align: center;
+            padding: 3rem 1rem;
+            margin: 2rem 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .hero-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 0 0 40px rgba(102, 126, 234, 0.3);
+            line-height: 1;
+        }
+
+        .subtitle {
+            position: absolute;
+            right: 2rem;
+            bottom: -0.5rem;
+            font-size: 1.2rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .join-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .join-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .join-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                right: 1rem;
+                bottom: -0.8rem;
+                font-size: 1rem;
+            }
+
+            .join-btn {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                right: 0.5rem;
+                bottom: -0.6rem;
+                font-size: 0.9rem;
+            }
+
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* 公告区域样式 */
+        .announcements {
+            background-color: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #667eea;
+        }
+
+        .announcements h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .announcement-item {
+            background-color: rgba(102, 126, 234, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .announcement-item:hover {
+            transform: translateX(5px);
+        }
+
+        .announcement-item:last-child {
+            margin-bottom: 1rem;
+        }
+
+        .view-more-announcements {
+            width: 100%;
+            padding: 1rem;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .view-more-announcements:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .announcement-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .announcement-date {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 英雄区域样式 */
+        .hero-section {
+            text-align: center;
+            padding: 3rem 1rem;
+            margin: 2rem 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .hero-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 0 0 40px rgba(102, 126, 234, 0.3);
+            line-height: 1;
+        }
+
+        .subtitle {
+            position: absolute;
+            right: 2rem;
+            bottom: -1rem;
+            font-size: 1.2rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .join-btn {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .join-btn:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .join-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 通用区块样式 */
+        .section {
+            background-color: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* 成员展示样式 */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .member-card {
+            background-color: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .member-title {
+            font-size: 0.9rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-role {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 1rem;
+        }
+
+        .member-desc {
+            font-size: 0.9rem;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        /* 角色标识样式 */
+        .role-indicator {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .role-leader {
+            background-color: #ffd700;
+            color: #000;
+        }
+
+        .role-deputy {
+            background-color: #c0c0c0;
+            color: #000;
+        }
+
+        .role-elite {
+            background-color: #cd7f32;
+            color: #fff;
+        }
+
+        .role-coach {
+            background-color: #9400d3;
+            color: #fff;
+        }
+
+        .role-admin {
+            background-color: #ff6347;
+            color: #fff;
+        }
+
+        /* 加入我们表单样式 */
+        .join-form {
+            background-color: rgba(102, 126, 234, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #667eea;
+            border-radius: 5px;
+            background-color: rgba(26, 26, 46, 0.8);
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #ffffff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn.cancel {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .btn.delete {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 按钮伪元素 */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+
+
+        /* 底部样式 */
+        footer {
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            margin-top: 2rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .members-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .join-contact {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 微动画和交互效果优化 */
+        .section {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: rgba(26, 26, 46, 0.95);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid #667eea;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover, .close:focus {
+            color: #fff;
+        }
+
+        /* 成员管理控制按钮 */
+        .member-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .member-action-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+        }
+
+        .member-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .member-action-btn.delete {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="fas-logo">Floating and Sinking</div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <nav>
+                <ul>
+                    <li><a href="#home">首页</a></li>
+                    <li><a href="#announcements">公告</a></li>
+                    <li><a href="#members">成员</a></li>
+                    <li><a href="#about">关于</a></li>
+                </ul>
+            </nav>
+            <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 新添加的Floating and Sinking模块 -->
+        <section class="hero-section" id="home">
+            <div class="hero-text">
+                <h1 class="main-title">Floating and Sinking</h1>
+                <span class="subtitle">浮夜沉月</span>
+            </div>
+            <a href="https://qm.qq.com/q/1KL3yBYVic" class="join-btn" target="_blank">加入QQ群</a>
+        </section>
+
+        <!-- 公告区域 -->
+        <section class="announcements" id="announcements">
+            <h2>最新公告 <button class="btn admin-only" id="addAnnouncementBtn">发布公告</button></h2>
+            <div id="announcementsList"></div>
+        </section>
+
+        <!-- 公会主要成员 -->
+        <section class="section" id="members">
+            <div class="member-controls">
+                <h2>公会主要成员</h2>
+                <button class="btn admin-only" id="addMemberBtn">添加成员</button>
+            </div>
+            <div id="membersGrid" class="members-grid"></div>
+        </section>
+
+        <!-- 公会介绍 -->
+        <section class="section" id="about">
+            <h2>关于FAS Club</h2>
+            <p>FAS的全称是Floating and Sinking，意为浮夜沉月。我们是一个专注于Minecraft PVP的公会，致力于打造一个充满凝聚力的大家庭。</p>
+            <p>希望公会成员能互帮互助，一起努力发展成一个大家庭。</p>
+            <p>MINECRAFT PVP EVERYTHING IS POSSIBLE.</p>
+            <p>为人民服务！</p>
+            <p>为人民服务！</p>
+            <p>为人民服务！</p>
+        </section>
+    </main>
+
+    <!-- 底部 -->
+    <footer>
+        <p>&copy; 2023 FAS Club. 保留所有权利。</p>
+    </footer>
+
+    <!-- 管理员登录模态框 -->
+    <div id="adminLoginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>管理员登录</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">账号:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码:</label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" id="togglePassword" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn confirm">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 登录消息模态框 -->
+    <div id="loginMessageModal" class="modal">
+        <div class="modal-content">
+            <h2 id="loginMessageTitle">登录消息</h2>
+            <div id="loginMessage"></div>
+            <button id="closeLoginMessageModal" class="btn confirm">确定</button>
+        </div>
+    </div>
+
+    <!-- 成员编辑模态框 -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeMemberModal">&times;</span>
+            <h2 id="modalTitle">添加成员</h2>
+            <form id="memberForm">
+                <div class="form-group">
+                    <label for="memberName">成员名称</label>
+                    <input type="text" id="memberName" name="memberName" required>
+                </div>
+                <div class="form-group">
+                    <label for="memberTitle">称号</label>
+                    <input type="text" id="memberTitle" name="memberTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="memberRole">角色</label>
+                    <select id="memberRole" name="memberRole" required>
+                        <option value="会长">会长</option>
+                        <option value="副会长">副会长</option>
+                        <option value="精英队员">精英队员</option>
+                        <option value="教练">教练</option>
+                        <option value="管理员">管理员</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="memberDesc">描述</label>
+                    <textarea id="memberDesc" name="memberDesc" required></textarea>
+                </div>
+                <button type="submit" class="btn">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 公告编辑模态框 -->
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeAnnouncementModal">&times;</span>
+            <h2 id="announcementModalTitle">发布公告</h2>
+            <form id="announcementForm">
+                <div class="form-group">
+                    <label for="announcementTitle">标题</label>
+                    <input type="text" id="announcementTitle" name="announcementTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="announcementContent">内容</label>
+                    <textarea id="announcementContent" name="announcementContent" rows="5" required></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button type="button" class="btn cancel" onclick="closeAnnouncementModalFunc()">取消</button>
+                    <button type="submit" class="btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认对话框模态框 -->
+        <div id="confirmModal" class="modal">
+            <div class="modal-content">
+                <h2 id="confirmTitle">确认操作</h2>
+                <p id="confirmMessage"></p>
+                <div style="text-align: right; margin-top: 2rem;">
+                    <button type="button" class="btn cancel" id="confirmCancelBtn">取消</button>
+                    <button type="button" class="btn delete" id="confirmDeleteBtn">确定删除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 删除成功提示模态框 -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <h2>操作成功 <span class="close" id="closeSuccessModal">&times;</span></h2>
+                <p id="successMessage"></p>
+                <div style="text-align: right; margin-top: 2rem;">
+                    <button type="button" class="btn" id="successOkBtn">确定</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        // 成员数据
+        let members = [
+            {
+                id: 1,
+                name: 'Steve',
+                title: 'PVP之神',
+                role: '会长',
+                desc: '公会创始人，PVP大神，战术大师'
+            },
+            {
+                id: 2,
+                name: 'Alex',
+                title: '战术之王',
+                role: '副会长',
+                desc: '团队指挥专家，擅长制定战术'
+            },
+            {
+                id: 3,
+                name: 'Herobrine',
+                title: '秒杀专家',
+                role: '精英队员',
+                desc: '擅长单挑战术，一击致命'
+            },
+            {
+                id: 4,
+                name: 'Notch',
+                title: '建筑大师',
+                role: '精英队员',
+                desc: '建筑与PVP双修，全能型选手'
+            },
+            {
+                id: 5,
+                name: 'Jeb',
+                title: '前职业选手',
+                role: '教练',
+                desc: '经验丰富的前职业选手，指导训练'
+            },
+            {
+                id: 6,
+                name: 'Null',
+                title: '技术支持',
+                role: '管理员',
+                desc: '服务器维护，技术支持'
+            },
+            {
+                id: 7,
+                name: '浮夜沉月',
+                title: '公会核心',
+                role: '精英队员',
+                desc: '公会的灵魂人物，实力强大'
+            }
+        ];
+
+        let nextId = members.length + 1;
+
+        // 获取DOM元素
+        const membersGrid = document.getElementById('membersGrid');
+        const addMemberBtn = document.getElementById('addMemberBtn');
+        const memberModal = document.getElementById('memberModal');
+        const closeMemberModal = document.getElementById('closeMemberModal');
+        const memberForm = document.getElementById('memberForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const memberName = document.getElementById('memberName');
+        const memberTitle = document.getElementById('memberTitle');
+        const memberRole = document.getElementById('memberRole');
+        const memberDesc = document.getElementById('memberDesc');
+
+        // 当前编辑的成员ID
+        let currentMemberId = null;
+
+        // 渲染成员列表
+        function renderMembers() {
+            membersGrid.innerHTML = '';
+            members.forEach(member => {
+                const memberCard = document.createElement('div');
+                memberCard.className = 'member-card';
+                
+                // 根据角色设置不同的样式类
+                let roleClass = '';
+                switch(member.role) {
+                    case '会长':
+                        roleClass = 'role-leader';
+                        break;
+                    case '副会长':
+                        roleClass = 'role-deputy';
+                        break;
+                    case '精英队员':
+                        roleClass = 'role-elite';
+                        break;
+                    case '教练':
+                        roleClass = 'role-coach';
+                        break;
+                    case '管理员':
+                        roleClass = 'role-admin';
+                        break;
+                }
+
+                memberCard.innerHTML = `
+                    <div class="member-title">${member.title}</div>
+                    <div class="member-name">${member.name}</div>
+                    <div class="role-indicator ${roleClass}">${member.role}</div>
+                    <div class="member-desc">${member.desc}</div>
+                    <div style="margin-top: 1rem;">
+                        <button class="member-action-btn admin-only" onclick="editMember(${member.id})">编辑</button>
+                        <button class="member-action-btn delete admin-only" onclick="deleteMember(${member.id})">删除</button>
+                    </div>
+                `;
+                
+                membersGrid.appendChild(memberCard);
+            });
+        }
+
+        // 打开模态框
+        function openModal() {
+            memberModal.style.display = 'block';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            memberModal.style.display = 'none';
+            memberForm.reset();
+            currentMemberId = null;
+            modalTitle.textContent = '添加成员';
+        }
+
+        // 添加成员
+        function addMember() {
+            modalTitle.textContent = '添加成员';
+            openModal();
+        }
+
+        // 编辑成员
+        function editMember(id) {
+            const member = members.find(m => m.id === id);
+            if (member) {
+                currentMemberId = id;
+                modalTitle.textContent = '编辑成员';
+                memberName.value = member.name;
+                memberTitle.value = member.title;
+                memberRole.value = member.role;
+                memberDesc.value = member.desc;
+                openModal();
+            }
+        }
+
+        // 显示确认对话框
+        function showConfirmDialog(title, message, id, type, callback) {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            currentDeleteId = id;
+            currentDeleteType = type;
+            deleteCallback = callback;
+            confirmModal.style.display = 'block';
+        }
+
+        // 关闭确认对话框
+        function closeConfirmDialog() {
+            confirmModal.style.display = 'none';
+            currentDeleteId = null;
+            currentDeleteType = null;
+            deleteCallback = null;
+        }
+
+        // 执行删除操作
+        function executeDelete() {
+            if (deleteCallback && currentDeleteId !== null) {
+                deleteCallback(currentDeleteId);
+            }
+            closeConfirmDialog();
+        }
+
+        // 删除成员
+        function deleteMember(id) {
+            showConfirmDialog(
+                '确认删除',
+                '确定要从系统中移除该成员吗？相关数据将被清除',
+                id,
+                'member',
+                function(deleteId) {
+                    members = members.filter(m => m.id !== deleteId);
+                    const saveResult = saveMembersToStorage();
+                    if (saveResult.success) {
+                        renderMembers();
+                        showSuccessMessage('成员已成功删除');
+                    } else {
+                        showSuccessMessage(saveResult.message, false);
+                    }
+                }
+            );
+        }
+
+        // 保存成员
+        memberForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newMember = {
+                name: memberName.value.trim(),
+                title: memberTitle.value.trim(),
+                role: memberRole.value.trim(),
+                desc: memberDesc.value.trim()
+            };
+            
+            // 验证成员数据
+            const validation = validateMemberData(newMember);
+            if (!validation.valid) {
+                showSuccessMessage(validation.message, false);
+                return;
+            }
+            
+            if (currentMemberId) {
+                // 编辑现有成员
+                const index = members.findIndex(m => m.id === currentMemberId);
+                if (index !== -1) {
+                    members[index] = { ...members[index], ...newMember };
+                }
+            } else {
+                // 添加新成员
+                newMember.id = nextId;
+                members.push(newMember);
+                nextId++;
+            }
+            
+            // 保存到本地存储
+            const saveResult = saveMembersToStorage();
+            if (saveResult.success) {
+                renderMembers();
+                closeModal();
+                showSuccessMessage(saveResult.message);
+            } else {
+                showSuccessMessage(saveResult.message, false);
+            }
+        });
+
+        // 从本地存储加载成员
+        function loadMembersFromStorage() {
+            try {
+                const savedMembers = localStorage.getItem('fasClubMembers');
+                const savedNextId = localStorage.getItem('fasClubNextId');
+                if (savedMembers) {
+                    members = JSON.parse(savedMembers);
+                    // 验证加载的数据格式
+                    if (!Array.isArray(members)) {
+                        throw new Error('成员数据格式错误');
+                    }
+                }
+                if (savedNextId) {
+                    nextId = parseInt(savedNextId);
+                    if (isNaN(nextId)) {
+                        nextId = members.length + 1;
+                    }
+                } else {
+                    nextId = members.length + 1;
+                }
+                renderMembers();
+                return true;
+            } catch (error) {
+                console.error('加载成员数据失败:', error);
+                // 重置为默认数据
+                members = [];
+                nextId = 1;
+                renderMembers();
+                return false;
+            }
+        }
+
+        // 验证成员数据
+        function validateMemberData(member) {
+            if (!member.name || member.name.trim() === '') {
+                return { valid: false, message: '成员名称不能为空' };
+            }
+            if (!member.title || member.title.trim() === '') {
+                return { valid: false, message: '成员称号不能为空' };
+            }
+            if (!member.role || member.role.trim() === '') {
+                return { valid: false, message: '成员职位不能为空' };
+            }
+            if (!member.desc || member.desc.trim() === '') {
+                return { valid: false, message: '成员描述不能为空' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        // 保存成员到本地存储
+        function saveMembersToStorage() {
+            try {
+                // 验证所有成员数据
+                for (const member of members) {
+                    const validation = validateMemberData(member);
+                    if (!validation.valid) {
+                        throw new Error(`成员数据验证失败: ${validation.message}`);
+                    }
+                }
+                
+                localStorage.setItem('fasClubMembers', JSON.stringify(members));
+                localStorage.setItem('fasClubNextId', nextId.toString());
+                return { success: true, message: '成员数据保存成功' };
+            } catch (error) {
+                console.error('保存成员数据失败:', error);
+                return { success: false, message: `保存失败: ${error.message}` };
+            }
+        }
+
+        // 公告数据
+        let announcements = [
+            {
+                id: 1,
+                title: '公会招新',
+                content: '我们正在寻找热爱Minecraft PVP的玩家加入我们的团队！无论你是新手还是老手，只要你有热情和毅力，都欢迎加入我们！',
+                date: '2023-06-15'
+            },
+            {
+                id: 2,
+                title: 'PVP比赛通知',
+                content: '本周六将举行公会内部PVP比赛，奖品丰厚，欢迎大家积极参与！',
+                date: '2023-06-10'
+            },
+            {
+                id: 3,
+                title: '服务器更新',
+                content: '服务器已更新至最新版本，新增了一些PVP相关的插件和地图，欢迎大家体验！',
+                date: '2023-06-05'
+            }
+        ];
+
+        let nextAnnouncementId = announcements.length + 1;
+
+        // 获取公告相关DOM元素
+        const announcementsList = document.getElementById('announcementsList');
+        const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
+        const announcementModal = document.getElementById('announcementModal');
+        const closeAnnouncementModal = document.getElementById('closeAnnouncementModal');
+        const announcementForm = document.getElementById('announcementForm');
+        const announcementModalTitle = document.getElementById('announcementModalTitle');
+        const announcementTitle = document.getElementById('announcementTitle');
+        const announcementContent = document.getElementById('announcementContent');
+
+        // 当前编辑的公告ID
+        let currentAnnouncementId = null;
+
+        // 确认对话框相关DOM元素
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        
+        // 成功提示模态框相关DOM元素
+        const successModal = document.getElementById('successModal');
+        const successMessage = document.getElementById('successMessage');
+        const successOkBtn = document.getElementById('successOkBtn');
+        
+        // 当前待删除的ID和类型
+        let currentDeleteId = null;
+        let currentDeleteType = null;
+        let deleteCallback = null;
+
+        // 渲染公告列表
+        function renderAnnouncements() {
+            announcementsList.innerHTML = '';
+            
+            // 按日期降序排序公告（最新的在前面）
+            const sortedAnnouncements = [...announcements].sort((a, b) => {
+                return new Date(b.date) - new Date(a.date);
+            });
+            
+            // 只显示最新的3条公告
+            const recentAnnouncements = sortedAnnouncements.slice(0, 3);
+            
+            // 如果没有公告，显示提示信息
+            if (recentAnnouncements.length === 0) {
+                announcementsList.innerHTML = '<p style="text-align: center; color: #94a3b8; font-style: italic; margin: 2rem 0;">暂无公告</p>';
+                return;
+            }
+            
+            recentAnnouncements.forEach(announcement => {
+                const announcementItem = document.createElement('div');
+                announcementItem.className = 'announcement-item';
+                announcementItem.innerHTML = `
+                    <div class="announcement-title">${announcement.title}</div>
+                    <div class="announcement-date">${announcement.date}</div>
+                    <div class="announcement-content">${announcement.content}</div>
+                    <div style="margin-top: 1rem;">
+                        <button class="member-action-btn admin-only" onclick="editAnnouncement(${announcement.id})">编辑</button>
+                        <button class="member-action-btn delete admin-only" onclick="deleteAnnouncement(${announcement.id})">删除</button>
+                    </div>
+                `;
+                announcementsList.appendChild(announcementItem);
+            });
+            
+            // 添加"往期公告"按钮，无论有多少条公告都显示
+            if (sortedAnnouncements.length > 0) {
+                const viewMoreButton = document.createElement('button');
+                viewMoreButton.className = 'view-more-announcements';
+                viewMoreButton.textContent = '往期公告';
+                viewMoreButton.onclick = () => {
+                    window.location.href = 'announcements.html';
+                };
+                announcementsList.appendChild(viewMoreButton);
+            }
+        }
+
+        // 打开公告模态框
+        function openAnnouncementModal() {
+            announcementModal.style.display = 'block';
+        }
+
+        // 关闭公告模态框
+        function closeAnnouncementModalFunc() {
+            announcementModal.style.display = 'none';
+            announcementForm.reset();
+            currentAnnouncementId = null;
+            announcementModalTitle.textContent = '发布公告';
+        }
+
+        // 添加公告
+        function addAnnouncement() {
+            announcementModalTitle.textContent = '发布公告';
+            openAnnouncementModal();
+        }
+
+        // 编辑公告
+        function editAnnouncement(id) {
+            const announcement = announcements.find(a => a.id === id);
+            if (announcement) {
+                currentAnnouncementId = id;
+                announcementModalTitle.textContent = '编辑公告';
+                announcementTitle.value = announcement.title;
+                announcementContent.value = announcement.content;
+                openAnnouncementModal();
+            }
+        }
+
+        // 删除公告
+        function deleteAnnouncement(id) {
+            showConfirmDialog(
+                '确认删除',
+                '确定要删除此公告吗？此操作不可撤销',
+                id,
+                'announcement',
+                function(deleteId) {
+                    announcements = announcements.filter(a => a.id !== deleteId);
+                    const saveResult = saveAnnouncementsToStorage();
+                    if (saveResult.success) {
+                        renderAnnouncements();
+                        showSuccessMessage('公告已成功删除');
+                    } else {
+                        showSuccessMessage(saveResult.message, false);
+                    }
+                }
+            );
+        }
+
+        // 保存公告
+        announcementForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const now = new Date();
+            const dateStr = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const newAnnouncement = {
+                title: announcementTitle.value.trim(),
+                content: announcementContent.value.trim(),
+                date: dateStr
+            };
+            
+            // 验证公告数据
+            const validation = validateAnnouncementData(newAnnouncement);
+            if (!validation.valid) {
+                showSuccessMessage(validation.message, false);
+                return;
+            }
+            
+            if (currentAnnouncementId) {
+                // 编辑现有公告
+                const index = announcements.findIndex(a => a.id === currentAnnouncementId);
+                if (index !== -1) {
+                    announcements[index] = { ...announcements[index], ...newAnnouncement };
+                }
+            } else {
+                // 添加新公告
+                newAnnouncement.id = nextAnnouncementId;
+                announcements.push(newAnnouncement);
+                nextAnnouncementId++;
+            }
+            
+            // 保存到本地存储
+            const saveResult = saveAnnouncementsToStorage();
+            if (saveResult.success) {
+                renderAnnouncements();
+                closeAnnouncementModalFunc();
+                showSuccessMessage(saveResult.message);
+            } else {
+                showSuccessMessage(saveResult.message, false);
+            }
+        });
+
+        // 从本地存储加载公告
+        function loadAnnouncementsFromStorage() {
+            try {
+                const savedAnnouncements = localStorage.getItem('fasClubAnnouncements');
+                const savedNextId = localStorage.getItem('fasClubNextAnnouncementId');
+                if (savedAnnouncements) {
+                    announcements = JSON.parse(savedAnnouncements);
+                    // 验证加载的数据格式
+                    if (!Array.isArray(announcements)) {
+                        throw new Error('公告数据格式错误');
+                    }
+                }
+                if (savedNextId) {
+                    nextAnnouncementId = parseInt(savedNextId);
+                    if (isNaN(nextAnnouncementId)) {
+                        nextAnnouncementId = announcements.length + 1;
+                    }
+                } else {
+                    nextAnnouncementId = announcements.length + 1;
+                }
+                renderAnnouncements();
+                return true;
+            } catch (error) {
+                console.error('加载公告数据失败:', error);
+                // 重置为默认数据
+                announcements = [];
+                nextAnnouncementId = 1;
+                renderAnnouncements();
+                return false;
+            }
+        }
+
+        // 验证公告数据
+        function validateAnnouncementData(announcement) {
+            if (!announcement.title || announcement.title.trim() === '') {
+                return { valid: false, message: '公告标题不能为空' };
+            }
+            if (!announcement.content || announcement.content.trim() === '') {
+                return { valid: false, message: '公告内容不能为空' };
+            }
+            if (!announcement.date || !/^\d{4}-\d{2}-\d{2}$/.test(announcement.date)) {
+                return { valid: false, message: '公告日期格式不正确' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        // 保存公告到本地存储
+        function saveAnnouncementsToStorage() {
+            try {
+                // 验证所有公告数据
+                for (const announcement of announcements) {
+                    const validation = validateAnnouncementData(announcement);
+                    if (!validation.valid) {
+                        throw new Error(`公告数据验证失败: ${validation.message}`);
+                    }
+                }
+                
+                localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
+                localStorage.setItem('fasClubNextAnnouncementId', nextAnnouncementId.toString());
+                return { success: true, message: '公告数据保存成功' };
+            } catch (error) {
+                console.error('保存公告数据失败:', error);
+                return { success: false, message: `保存失败: ${error.message}` };
+            }
+        }
+
+        // 显示成功/错误提示消息
+        function showSuccessMessage(message, isSuccess = true) {
+            successMessage.textContent = message;
+            // 根据消息类型调整样式
+            const modalContent = successModal.querySelector('.modal-content');
+            if (isSuccess) {
+                modalContent.style.borderColor = '#4CAF50';
+                modalContent.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            } else {
+                modalContent.style.borderColor = '#f44336';
+                modalContent.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            }
+            successModal.style.display = 'block';
+        }
+
+        // 关闭成功提示模态框
+        function closeSuccessModalFunc() {
+            successModal.style.display = 'none';
+        }
+
+        // 事件监听器
+        addMemberBtn.addEventListener('click', addMember);
+        closeMemberModal.addEventListener('click', closeModal);
+        addAnnouncementBtn.addEventListener('click', addAnnouncement);
+        closeAnnouncementModal.addEventListener('click', closeAnnouncementModalFunc);
+        confirmCancelBtn.addEventListener('click', closeConfirmDialog);
+        confirmDeleteBtn.addEventListener('click', executeDelete);
+        // 事件监听器：关闭成功提示模态框
+        document.getElementById('closeSuccessModal').addEventListener('click', closeSuccessModalFunc);
+        // 事件监听器：确认成功提示
+        successOkBtn.addEventListener('click', closeSuccessModalFunc);
+
+        // 平滑滚动功能
+        // 左上角logo点击平滑滚动到顶部
+        document.querySelector('.fas-logo').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 导航链接点击平滑滚动
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // 删除了点击模态框外部关闭的功能，现在只能通过点击叉按钮关闭模态框
+
+        // 初始化
+        // 管理员登录状态
+        let isAdminLoggedIn = false;
+
+        // 显示/隐藏管理功能
+        function toggleAdminFeatures() {
+            const adminButtons = document.querySelectorAll('.admin-only');
+            adminButtons.forEach(button => {
+                button.style.display = isAdminLoggedIn ? 'inline-block' : 'none';
+            });
+            
+            // 切换登录/退出按钮文本
+            const loginBtn = document.getElementById('adminLoginBtn');
+            loginBtn.textContent = isAdminLoggedIn ? '退出登录' : '管理员登录';
+        }
+
+        // 打开管理员登录模态框
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'block';
+        }
+
+        // 关闭管理员登录模态框
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+            // 重置表单
+            document.getElementById('adminLoginForm').reset();
+        }
+
+        // 显示登录消息模态框
+        function showLoginMessage(title, message, isSuccess) {
+            document.getElementById('loginMessageTitle').textContent = title;
+            const messageElement = document.getElementById('loginMessage');
+            messageElement.textContent = message;
+            messageElement.style.color = isSuccess ? '#4CAF50' : '#f44336';
+            document.getElementById('loginMessageModal').style.display = 'block';
+        }
+
+        // 关闭登录消息模态框
+        function closeLoginMessageModal() {
+            document.getElementById('loginMessageModal').style.display = 'none';
+        }
+
+        // 管理员登录处理
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // 验证账号密码
+            if (username === 'admin' && password === 'admin123456') {
+                isAdminLoggedIn = true;
+                toggleAdminFeatures();
+                closeAdminLoginModal();
+                showLoginMessage('登录成功', '管理员登录成功！', true);
+            } else {
+                showLoginMessage('登录失败', '账号或密码错误！', false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMembersFromStorage();
+            loadAnnouncementsFromStorage();
+            // 初始隐藏管理功能
+            toggleAdminFeatures();
+
+            // 为管理员登录/退出按钮添加点击事件监听器
+            const loginBtn = document.getElementById('adminLoginBtn');
+            loginBtn.addEventListener('click', function() {
+                if (isAdminLoggedIn) {
+                    // 退出登录
+                    isAdminLoggedIn = false;
+                    toggleAdminFeatures();
+                    showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
+                } else {
+                    // 打开登录模态框
+                    openAdminLoginModal();
+                }
+            });
+            // 为管理员登录表单添加提交事件监听器
+            document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
+            // 为登录模态框关闭按钮添加点击事件监听器
+            document.querySelector('#adminLoginModal .close').addEventListener('click', closeAdminLoginModal);
+            
+            // 为密码显示/隐藏按钮添加点击事件监听器
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🙈';
+            });
+            // 为登录消息模态框关闭按钮添加点击事件监听器
+            document.getElementById('closeLoginMessageModal').addEventListener('click', closeLoginMessageModal);
+        });
+
+        // 点击模态框外部关闭模态框 (仅对登录消息模态框生效)
+        window.onclick = function(event) {
+            const loginMessageModal = document.getElementById('loginMessageModal');
+            if (event.target === loginMessageModal) {
+                closeLoginMessageModal();
+            }
+        }
+    </script>
+</body>
+</html>
