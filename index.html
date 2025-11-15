@@ -135,7 +135,7 @@
             background-color: #667eea;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
@@ -289,7 +289,7 @@
             background-color: #667eea;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -452,28 +452,56 @@
         }
 
         .role-leader {
-            background-color: #ffd700;
-            color: #000;
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            background-size: 200% 200%;
+            color: #fff;
+            animation: gradientShift 3s ease infinite;
         }
 
         .role-deputy {
-            background-color: #c0c0c0;
-            color: #000;
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            background-size: 200% 200%;
+            color: #fff;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .role-elite {
-            background-color: #cd7f32;
-            color: #fff;
+            background: linear-gradient(45deg, #ffa726, #ffd54f);
+            background-size: 200% 200%;
+            color: #000;
+            animation: gradientShift 3s ease infinite;
         }
 
         .role-coach {
-            background-color: #9400d3;
+            background: linear-gradient(45deg, #9400d3, #da70d6);
+            background-size: 200% 200%;
             color: #fff;
+            animation: gradientShift 3s ease infinite;
         }
 
         .role-admin {
-            background-color: #ff6347;
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 1400% 1400%;
             color: #fff;
+            animation: rainbowShift 4s ease infinite;
+        }
+
+        @keyframes rainbowShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* 加入我们表单样式 */
@@ -661,7 +689,7 @@
             color: #fff;
             border: none;
             padding: 0.5rem 1rem;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: 0.9rem;
             transition: all 0.3s ease;
@@ -949,15 +977,20 @@
                         break;
                 }
 
+                // 根据管理员登录状态生成操作按钮
+                const actionButtons = isAdminLoggedIn ? `
+                    <div style="margin-top: 1rem;">
+                        <button class="member-action-btn admin-only" onclick="editMember(${member.id})">编辑</button>
+                        <button class="member-action-btn delete admin-only" onclick="deleteMember(${member.id})">删除</button>
+                    </div>
+                ` : '';
+                
                 memberCard.innerHTML = `
                     <div class="member-title">${member.title}</div>
                     <div class="member-name">${member.name}</div>
                     <div class="role-indicator ${roleClass}">${member.role}</div>
                     <div class="member-desc">${member.desc}</div>
-                    <div style="margin-top: 1rem;">
-                        <button class="member-action-btn admin-only" onclick="editMember(${member.id})">编辑</button>
-                        <button class="member-action-btn delete admin-only" onclick="deleteMember(${member.id})">删除</button>
-                    </div>
+                    ${actionButtons}
                 `;
                 
                 membersGrid.appendChild(memberCard);
@@ -1600,6 +1633,16 @@
             return accounts.find(account => account.username === username && account.password === password);
         }
 
+        // 生成随机Token
+        function generateToken() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let token = '';
+            for (let i = 0; i < 32; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return token;
+        }
+
         // 管理员登录处理
         function handleAdminLogin(event) {
             event.preventDefault();
@@ -1609,27 +1652,99 @@
             // 验证账号密码
             const account = validateAdminAccount(username, password);
             if (account) {
+                // 生成登录凭证
+                const token = generateToken();
+                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时过期
+                
+                // 存储登录状态
+                localStorage.setItem('adminToken', token);
+                localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
+                localStorage.setItem('currentAdminUser', JSON.stringify(account));
+                
                 isAdminLoggedIn = true;
-                currentAdminUser = username;
-                // 保存登录状态到localStorage
-                localStorage.setItem('isAdminLoggedIn', 'true');
-                localStorage.setItem('currentAdminUser', username);
+                currentAdminUser = account;
+                
                 toggleAdminFeatures();
                 closeAdminLoginModal();
                 showLoginMessage('登录成功', `管理员 ${username} 登录成功！`, true);
+                
+                // 记录登录日志
+                logAdminAction('login', `管理员 ${username} 登录成功`);
             } else {
                 showLoginMessage('登录失败', '账号或密码错误！', false);
+                
+                // 记录失败日志
+                logAdminAction('login_failed', `管理员登录失败，用户名：${username}`);
             }
+        }
+
+        // 管理员退出登录处理
+        function handleAdminLogout() {
+            // 记录退出日志
+            logAdminAction('logout', `管理员 ${currentAdminUser.username} 退出登录`);
+            
+            // 清除登录状态
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminTokenExpires');
+            localStorage.removeItem('currentAdminUser');
+            
+            isAdminLoggedIn = false;
+            currentAdminUser = '';
+            
+            toggleAdminFeatures();
         }
 
         // 检查并恢复登录状态
         function checkLoginStatus() {
-            // 从localStorage恢复登录状态
-            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-            currentAdminUser = localStorage.getItem('currentAdminUser') || '';
+            const token = localStorage.getItem('adminToken');
+            const expiresAt = localStorage.getItem('adminTokenExpires');
+            const userData = localStorage.getItem('currentAdminUser');
             
-            // 更新UI
-            toggleAdminFeatures();
+            if (token && expiresAt && userData) {
+                const now = new Date();
+                const expiryDate = new Date(expiresAt);
+                
+                if (now < expiryDate) {
+                    // 凭证有效
+                    isAdminLoggedIn = true;
+                    currentAdminUser = JSON.parse(userData);
+                    toggleAdminFeatures();
+                    
+                    // 记录日志
+                    logAdminAction('session_restored', `管理员 ${currentAdminUser.username} 会话恢复`);
+                    return true;
+                } else {
+                    // 凭证过期
+                    handleAdminLogout();
+                    
+                    // 记录日志
+                    logAdminAction('session_expired', `管理员会话过期，用户：${JSON.parse(userData).username}`);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        // 记录管理员操作日志
+        function logAdminAction(action, description) {
+            // 获取现有日志
+            const logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+            
+            // 添加新日志
+            logs.push({
+                action,
+                description,
+                timestamp: new Date().toISOString(),
+                user: currentAdminUser ? currentAdminUser.username : 'unknown'
+            });
+            
+            // 只保留最近100条日志
+            if (logs.length > 100) {
+                logs.shift();
+            }
+            
+            // 保存日志
+            localStorage.setItem('adminLogs', JSON.stringify(logs));
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -1647,12 +1762,7 @@
             loginBtn.addEventListener('click', function() {
                 if (isAdminLoggedIn) {
                     // 退出登录
-                    isAdminLoggedIn = false;
-                    currentAdminUser = '';
-                    // 清除localStorage中的登录状态
-                    localStorage.setItem('isAdminLoggedIn', 'false');
-                    localStorage.removeItem('currentAdminUser');
-                    toggleAdminFeatures();
+                    handleAdminLogout();
                     showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
                 } else {
                     // 打开登录模态框

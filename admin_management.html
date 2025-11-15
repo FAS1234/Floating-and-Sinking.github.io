@@ -202,33 +202,56 @@
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
 
-        button {
-            padding: 0.8rem 1.5rem;
-            background-color: #667eea;
-            color: white;
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #ffffff;
             border: none;
+            padding: 0.8rem 1.5rem;
             border-radius: 5px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
             margin-right: 10px;
         }
+        
+        .btn.cancel {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .btn.delete {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
 
-        button:hover {
-            background-color: #5a67d8;
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .logout-btn {
-            background-color: rgba(255, 67, 54, 0.8);
+        .btn:active {
+            transform: translateY(0);
         }
 
-        .logout-btn:hover {
-            background-color: rgba(218, 25, 11, 0.8);
+        /* 按钮伪元素 */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+
 
         .accounts-list {
             margin-top: 2rem;
@@ -269,14 +292,7 @@
             border: 1px solid rgba(244, 67, 54, 0.4);
         }
 
-        /* 返回首页按钮样式 */
-        .back-home-btn {
-            display: block;
-            margin: 2rem auto 0;
-            text-align: center;
-            width: 200px;
-            background-color: rgba(102, 126, 234, 0.8);
-        }
+
 
         /* 弹窗样式 */
         .modal {
@@ -359,26 +375,7 @@
             color: #8bc34a;
         }
 
-        /* 删除确认弹窗按钮样式 */
-        .cancel-btn {
-            background-color: #666;
-            box-shadow: 0 2px 10px rgba(102, 102, 102, 0.3);
-        }
 
-        .cancel-btn:hover {
-            background-color: #555;
-            box-shadow: 0 4px 15px rgba(102, 102, 102, 0.5);
-        }
-
-        .delete-btn {
-            background-color: rgba(255, 67, 54, 0.8);
-            box-shadow: 0 2px 10px rgba(255, 67, 54, 0.3);
-        }
-
-        .delete-btn:hover {
-            background-color: rgba(218, 25, 11, 0.8);
-            box-shadow: 0 4px 15px rgba(255, 67, 54, 0.5);
-        }
     </style>
 </head>
 <body>
@@ -417,7 +414,7 @@
                         <label for="newPassword">密码:</label>
                         <input type="password" id="newPassword" name="newPassword" required>
                     </div>
-                    <button type="submit">添加管理员</button>
+                    <button type="submit" class="btn">添加管理员</button>
                 </form>
             </div>
             
@@ -429,12 +426,12 @@
             
             <!-- 退出登录按钮 -->
             <div style="text-align: center; margin-top: 2rem;">
-                <button id="logoutBtn" class="logout-btn">退出登录</button>
+                <button id="logoutBtn" class="btn delete">退出登录</button>
             </div>
             
             <!-- 返回首页按钮 -->
             <a href="index.html">
-                <button class="back-home-btn">返回首页</button>
+                <button class="btn">返回首页</button>
             </a>
         </div>
     </main>
@@ -450,9 +447,9 @@
                     <input type="text" id="newUsernameInput" name="newUsernameInput" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" id="cancelUpdateUsername">取消</button>
-                    <button type="submit">确认修改</button>
-                </div>
+                <button type="button" id="cancelUpdateUsername" class="btn cancel">取消</button>
+                <button type="submit" class="btn">确认修改</button>
+            </div>
             </form>
         </div>
     </div>
@@ -468,9 +465,9 @@
                     <input type="password" id="newPasswordInput" name="newPasswordInput" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" id="cancelUpdatePassword">取消</button>
-                    <button type="submit">确认修改</button>
-                </div>
+                <button type="button" id="cancelUpdatePassword" class="btn cancel">取消</button>
+                <button type="submit" class="btn">确认修改</button>
+            </div>
             </form>
         </div>
     </div>
@@ -481,7 +478,7 @@
             <div class="success-icon">✓</div>
             <h2>操作成功</h2>
             <p id="successMessage"></p>
-            <button id="closeSuccessModal">确定</button>
+            <button id="closeSuccessModal" class="btn">确定</button>
         </div>
     </div>
 
@@ -492,8 +489,8 @@
             <h2>删除确认</h2>
             <p id="deleteConfirmMessage"></p>
             <div class="modal-buttons">
-                <button id="cancelDelete" class="cancel-btn">取消</button>
-                <button id="confirmDelete" class="delete-btn">确定</button>
+                <button id="cancelDelete" class="btn cancel">取消</button>
+                <button id="confirmDelete" class="btn delete">确定</button>
             </div>
         </div>
     </div>
@@ -501,7 +498,7 @@
     <script>
         // 管理员登录状态
         let isAdminLoggedIn = false;
-        let currentAdminUser = '';
+        let currentAdminUser = null;
         // 当前操作的用户名
         let currentOperationUser = '';
         
@@ -616,12 +613,12 @@
                 html += `
                     <div class="account-item">
                         <strong>用户名:</strong> ${account.username}<br>
-                        <strong>创建时间:</strong> ${createdAt}<br><br>
-                        <button onclick="updateUsername('${account.username}')">修改名称</button>
-                        <button onclick="updatePassword('${account.username}')">修改密码</button>
-                        <button onclick="deleteAccount('${account.username}')" ${isCurrentUser ? 'disabled' : ''} ${isCurrentUser ? 'title="不能删除当前登录的账号"' : ''}>
-                            删除账号
-                        </button>
+                          <strong>创建时间:</strong> ${createdAt}<br><br>
+                          <button onclick="updateUsername('${account.username}')" class="btn">修改名称</button>
+                          <button onclick="updatePassword('${account.username}')" class="btn">修改密码</button>
+                          <button onclick="deleteAccount('${account.username}')" class="btn delete" ${isCurrentUser ? 'disabled' : ''} ${isCurrentUser ? 'title="不能删除当前登录的账号"' : ''}>
+                              删除账号
+                          </button>
                     </div>
                 `;
             });
@@ -629,15 +626,28 @@
             accountsListDiv.innerHTML = html;
         }
 
+        // 生成随机token
+        function generateToken() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let token = '';
+            for (let i = 0; i < 32; i++) {
+                token += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return token;
+        }
+
         // 退出登录
         function logout() {
             isAdminLoggedIn = false;
-            currentAdminUser = '';
-            // 更新localStorage中的登录状态
-            localStorage.setItem('isAdminLoggedIn', 'false');
+            currentAdminUser = null;
+            // 清除localStorage中的登录状态和token
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminTokenExpires');
             localStorage.removeItem('currentAdminUser');
             // 更新导航栏按钮
             updateLoginButton();
+            // 记录登出日志
+            logAdminAction('logout', '管理员成功退出登录', { username: currentAdminUser });
             showMessage('已退出登录', true);
             // 重定向到首页
             setTimeout(() => {
@@ -659,19 +669,55 @@
             }
         }
 
+        // 记录管理员操作日志
+        function logAdminAction(action, description, details = {}) {
+            try {
+                const logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+                logs.push({
+                    action,
+                    description,
+                    details,
+                    timestamp: new Date().toISOString(),
+                    user: currentAdminUser
+                });
+                // 只保留最近100条日志
+                if (logs.length > 100) {
+                    logs.shift();
+                }
+                localStorage.setItem('adminLogs', JSON.stringify(logs));
+            } catch (error) {
+                console.error('记录日志失败:', error);
+            }
+        }
+
         // 检查登录状态
         function checkLoginStatus() {
-            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-            currentAdminUser = localStorage.getItem('currentAdminUser') || '';
+            const token = localStorage.getItem('adminToken');
+            const expires = localStorage.getItem('adminTokenExpires');
+            currentAdminUser = localStorage.getItem('currentAdminUser');
             
-            if (!isAdminLoggedIn) {
-                showMessage('请先登录管理员账号', false);
+            const now = Date.now();
+            
+            if (!token || !expires || !currentAdminUser || now > parseInt(expires)) {
+                // Token不存在或已过期
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminTokenExpires');
+                localStorage.removeItem('currentAdminUser');
+                isAdminLoggedIn = false;
+                currentAdminUser = null;
+                
+                showMessage('登录已过期，请重新登录', false);
                 // 重定向到首页
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1500);
                 return false;
             }
+            
+            isAdminLoggedIn = true;
+            // 更新token过期时间（每次访问页面都延长有效期）
+            const newExpires = now + 24 * 60 * 60 * 1000; // 24小时
+            localStorage.setItem('adminTokenExpires', newExpires.toString());
             
             return true;
         }
@@ -691,6 +737,14 @@
             
             // 渲染账号列表
             renderAccountsList();
+            
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'adminToken' || event.key === 'currentAdminUser') {
+                    checkLoginStatus();
+                    updateLoginButton();
+                }
+            });
             
             // 添加管理员账号表单提交事件
             document.getElementById('addAdminForm').addEventListener('submit', function(event) {

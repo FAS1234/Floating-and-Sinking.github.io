@@ -196,22 +196,42 @@
         /* 返回首页按钮样式 */
         .back-home-btn {
             display: inline-block;
-            padding: 0.8rem 2rem;
-            background-color: #667eea;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             text-decoration: none;
-            border-radius: 50px;
+            border-radius: 5px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: bold;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .view-more-announcements:hover {
-            background-color: #5a67d8;
+        .back-home-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .back-home-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-home-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+
+        .back-home-btn:hover::before {
+            left: 100%;
         }
 
         /* 模态框样式 */
@@ -299,12 +319,27 @@
         .btn {
             display: inline-block;
             padding: 0.8rem 1.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
             border: none;
             border-radius: 5px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn.cancel {
+            background: linear-gradient(45deg, #6c757d, #495057);
+            color: white;
+            margin-right: 1rem;
+        }
+
+        .btn.delete {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
         }
 
         .btn:hover {
@@ -312,48 +347,30 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
 
-        .btn.cancel {
-            background-color: #64748b;
-            color: white;
-            margin-right: 1rem;
+        .btn:active {
+            transform: translateY(0);
         }
 
-        .btn.cancel:hover {
-            background-color: #475569;
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
         }
 
-        .btn.delete {
-            background-color: #ef4444;
-            color: white;
+        .btn:hover::before {
+            left: 100%;
         }
 
-        .btn.delete:hover {
-            background-color: #dc2626;
-        }
-
-        /* 成员操作按钮 */
-        .member-action-btn {
+        /* 公告操作按钮 */
+        .btn.announcement-btn {
             padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 5px;
             font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
             margin-right: 0.5rem;
-        }
-
-        .member-action-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .member-action-btn.delete {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .member-action-btn.delete:hover {
-            background-color: #dc2626;
         }
 
         /* 响应式设计 */
@@ -624,9 +641,9 @@
                     <div class="announcement-date">发布时间: ${announcement.date}</div>
                     <div class="announcement-content">${announcement.content}</div>
                     <div style="margin-top: 1rem; text-align: right;">
-                        <button class="member-action-btn admin-only" onclick="editAnnouncement(${index})">编辑</button>
-                        <button class="member-action-btn delete admin-only" onclick="confirmDeleteAnnouncement(${index})">删除</button>
-                    </div>
+                          <button class="btn announcement-btn admin-only" onclick="editAnnouncement(${index})">编辑</button>
+                          <button class="btn delete announcement-btn admin-only" onclick="confirmDeleteAnnouncement(${index})">删除</button>
+                      </div>
                 `;
                 announcementsList.appendChild(announcementItem);
             });
@@ -757,7 +774,7 @@
 
         // 管理员登录状态
         let isAdminLoggedIn = false;
-        let currentAdminUser = '';
+        let currentAdminUser = null;
         
         // 初始化管理员账号
         initAdminAccounts();
@@ -844,6 +861,16 @@
             return accounts.find(account => account.username === username && account.password === password);
         }
 
+        // 生成随机Token
+        function generateToken() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let token = '';
+            for (let i = 0; i < 32; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return token;
+        }
+        
         // 管理员登录处理
         function handleAdminLogin(event) {
             event.preventDefault();
@@ -853,27 +880,123 @@
             // 验证账号密码
             const account = validateAdminAccount(username, password);
             if (account) {
+                // 生成登录凭证
+                const token = generateToken();
+                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时过期
+                
+                // 存储登录状态
+                localStorage.setItem('adminToken', token);
+                localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
+                localStorage.setItem('currentAdminUser', JSON.stringify(account));
+                
                 isAdminLoggedIn = true;
-                currentAdminUser = username;
-                // 保存登录状态到localStorage
-                localStorage.setItem('isAdminLoggedIn', 'true');
-                localStorage.setItem('currentAdminUser', username);
+                currentAdminUser = account;
+                
                 toggleAdminFeatures();
                 closeAdminLoginModal();
                 showLoginMessage('登录成功', `管理员 ${username} 登录成功！`, true);
+                renderAnnouncements();
+                
+                // 记录登录日志
+                logAdminAction('login', `管理员 ${username} 登录成功`);
             } else {
                 showLoginMessage('登录失败', '账号或密码错误！', false);
+                
+                // 记录失败日志
+                logAdminAction('login_failed', `管理员登录失败，用户名：${username}`);
             }
         }
-
-     // 检查并恢复登录状态
-        function checkLoginStatus() {
-            // 从localStorage恢复登录状态
-            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-            currentAdminUser = localStorage.getItem('currentAdminUser') || '';
+        
+        // 管理员退出登录处理
+        function handleAdminLogout() {
+            // 记录退出日志
+            logAdminAction('logout', `管理员 ${currentAdminUser.username} 退出登录`);
             
-            // 更新UI
+            // 清除登录状态
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminTokenExpires');
+            localStorage.removeItem('currentAdminUser');
+            localStorage.removeItem('isAdminLoggedIn');
+            
+            isAdminLoggedIn = false;
+            currentAdminUser = null;
+            
             toggleAdminFeatures();
+            renderAnnouncements();
+        }
+        
+        // 检查并恢复登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('adminToken');
+            const expiresAt = localStorage.getItem('adminTokenExpires');
+            const userData = localStorage.getItem('currentAdminUser');
+            
+            if (token && expiresAt && userData) {
+                const now = new Date();
+                const expiryDate = new Date(expiresAt);
+                
+                if (now < expiryDate) {
+                    // 凭证有效
+                    isAdminLoggedIn = true;
+                    currentAdminUser = JSON.parse(userData);
+                    toggleAdminFeatures();
+                    
+                    // 记录日志
+                    logAdminAction('session_restored', `管理员 ${currentAdminUser.username} 会话恢复`);
+                    return true;
+                } else {
+                    // 凭证过期
+                    handleAdminLogout();
+                    
+                    // 记录日志
+                    logAdminAction('session_expired', `管理员会话过期，用户：${JSON.parse(userData).username}`);
+                    return false;
+                }
+            }
+            
+            // 兼容旧的登录状态
+            const oldLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+            const oldUser = localStorage.getItem('currentAdminUser');
+            if (oldLoggedIn && oldUser && typeof oldUser === 'string') {
+                // 迁移到新的token机制
+                const token = generateToken();
+                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                const account = { username: oldUser, password: '', createdAt: new Date().toISOString() };
+                
+                localStorage.setItem('adminToken', token);
+                localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
+                localStorage.setItem('currentAdminUser', JSON.stringify(account));
+                localStorage.removeItem('isAdminLoggedIn');
+                
+                isAdminLoggedIn = true;
+                currentAdminUser = account;
+                toggleAdminFeatures();
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // 记录管理员操作日志
+        function logAdminAction(action, description) {
+            // 获取现有日志
+            const logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+            
+            // 添加新日志
+            logs.push({
+                action,
+                description,
+                timestamp: new Date().toISOString(),
+                user: currentAdminUser ? currentAdminUser.username : 'unknown'
+            });
+            
+            // 只保留最近100条日志
+            if (logs.length > 100) {
+                logs.shift();
+            }
+            
+            // 保存日志
+            localStorage.setItem('adminLogs', JSON.stringify(logs));
         }
 
         // 页面加载完成后渲染公告
@@ -892,12 +1015,38 @@
             loginBtn.addEventListener('click', function() {
                 if (isAdminLoggedIn) {
                     // 退出登录
-                    isAdminLoggedIn = false;
-                    currentAdminUser = '';
-                    // 清除localStorage中的登录状态
-                    localStorage.setItem('isAdminLoggedIn', 'false');
-                    localStorage.removeItem('currentAdminUser');
-                    toggleAdminFeatures();
+                    handleAdminLogout();
+                } else {
+                    // 打开登录模态框
+                    openAdminLoginModal();
+                }
+            });
+
+            // 为管理员登录表单添加提交事件监听器
+            const loginForm = document.getElementById('adminLoginForm');
+            loginForm.addEventListener('submit', handleAdminLogin);
+
+            // 为登录消息模态框的关闭按钮添加点击事件监听器
+            const closeLoginMessageBtn = document.getElementById('closeLoginMessage');
+            closeLoginMessageBtn.addEventListener('click', closeLoginMessageModal);
+
+            // 为密码显示/隐藏按钮添加点击事件监听器
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            if (togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('password');
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.textContent = type === 'password' ? '👁️' : '🙈';
+                });
+            }
+
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'adminToken' || event.key === 'currentAdminUser') {
+                    checkLoginStatus();
+                }
+            });
                     showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
                 } else {
                     // 打开登录模态框
