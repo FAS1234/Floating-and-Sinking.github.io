@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员账号管理 - Floating and Sinking 浮夜沉月</title>
+    <script src="auth_manager.js"></script>
     <style>
         /* 基础样式重置 */
         * {
@@ -509,7 +510,6 @@
 
     <script>
         // 管理员登录状态
-        let isAdminLoggedIn = false;
         let currentAdminUser = null;
         // 当前操作的用户名
         let currentOperationUser = '';
@@ -650,7 +650,7 @@
 
         // 退出登录
         function logout() {
-            isAdminLoggedIn = false;
+            AuthManager.logout();
             currentAdminUser = null;
             // 清除localStorage中的登录状态和token
             localStorage.removeItem('adminToken');
@@ -671,7 +671,7 @@
         function updateLoginButton() {
             const loginBtn = document.getElementById('adminLoginBtn');
             if (loginBtn) {
-                if (isAdminLoggedIn) {
+                if (AuthManager.isLoggedIn) {
                     loginBtn.textContent = '退出登录';
                     loginBtn.onclick = logout;
                 } else {
@@ -715,7 +715,7 @@
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('adminTokenExpires');
                 localStorage.removeItem('currentAdminUser');
-                isAdminLoggedIn = false;
+                AuthManager.logout();
                 currentAdminUser = null;
                 
                 showMessage('登录已过期，请重新登录', false);
@@ -726,7 +726,7 @@
                 return false;
             }
             
-            isAdminLoggedIn = true;
+            AuthManager.login(username, password);
             // 更新token过期时间（每次访问页面都延长有效期）
             const newExpires = now + 24 * 60 * 60 * 1000; // 24小时
             localStorage.setItem('adminTokenExpires', newExpires.toString());
@@ -907,19 +907,13 @@
                     if (event.newValue) {
                         // 登录状态
                         const adminData = JSON.parse(event.newValue);
-                        isAdminLoggedIn = true;
+                        AuthManager.login(adminData.username, adminData.password);
                         currentAdminUser = adminData.username;
-                        // 更新localStorage以匹配当前页面的存储方式
-                        localStorage.setItem('isAdminLoggedIn', 'true');
-                        localStorage.setItem('currentAdminUser', currentAdminUser);
                         updateLoginButton();
                     } else {
                         // 退出状态
-                        isAdminLoggedIn = false;
+                        AuthManager.logout();
                         currentAdminUser = '';
-                        // 更新localStorage以匹配当前页面的存储方式
-                        localStorage.setItem('isAdminLoggedIn', 'false');
-                        localStorage.removeItem('currentAdminUser');
                         updateLoginButton();
                         // 重定向到首页
                         showMessage('管理员已退出登录', false);

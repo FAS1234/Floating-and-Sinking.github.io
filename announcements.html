@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>公告列表 - Floating and Sinking 浮夜沉月</title>
+    <script src="auth_manager.js"></script>
     <style>
         /* 基础样式重置 */
         * {
@@ -16,7 +17,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #ffffff;
-            background-color: #1a1a2e;
             overflow-x: hidden;
         }
 
@@ -102,9 +102,12 @@
 
         .fas-logo {
             font-size: 1.8rem;
-            font-weight: bold;
-            color: #667eea;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
         }
 
         /* 导航栏样式 */
@@ -141,13 +144,73 @@
             width: 100%;
         }
 
-        /* 管理员登录按钮样式 */
+        /* 管理员操作按钮组 */
+        .admin-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* 通用按钮样式 */
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #ffffff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 10px;
+        }
+
+        .btn.cancel {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .btn.delete {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 按钮伪元素 */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* 管理员登录按钮 */
         .admin-login-btn {
             padding: 0.5rem 1rem;
             background-color: #667eea;
             color: white;
             border: none;
-            border-radius: 30px;
+            border-radius: 5px;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
@@ -161,161 +224,260 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
         }
 
+        /* 返回首页按钮 */
+        .back-home-btn {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .back-home-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateX(-3px);
+        }
+
+        /* 发布公告按钮 */
+        .publish-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            margin-bottom: 2rem;
+            margin-right: 10px;
+        }
+
+        .publish-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
         /* 容器样式 */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 3rem 2rem;
         }
 
         /* 公告区域样式 */
         .announcements {
-            background-color: rgba(26, 26, 46, 0.8);
-            border-radius: 10px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 5px solid #667eea;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .announcements h2 {
-            margin-bottom: 2rem;
-            color: #ffffff;
-            font-size: 2rem;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f97316, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .announcements-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
         }
 
         /* 公告列表样式 */
         .announcements-list {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
         /* 单个公告样式 */
         .announcement-item {
-            background-color: rgba(40, 40, 70, 0.6);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 3px solid #667eea;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            margin-bottom: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
         }
 
         .announcement-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+            background-color: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        /* 公告操作按钮样式 */
+        .announcement-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .announcement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .announcement-title {
             font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 700;
+            color: #f8fafc;
             margin-bottom: 0.5rem;
+            line-height: 1.4;
+            flex: 1;
         }
 
         .announcement-date {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-bottom: 1rem;
-            font-style: italic;
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            white-space: nowrap;
         }
 
         .announcement-content {
-            color: #e2e8f0;
+            color: #cbd5e1;
             line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-
-        /* 返回首页按钮样式 */
-        .back-home-btn {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
+            margin-bottom: 1.5rem;
             font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
+            word-wrap: break-word;
         }
 
-        .back-home-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        /* 公告操作按钮 */
+        .announcement-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
         }
 
-        .back-home-btn:active {
-            transform: translateY(0);
+        .btn.announcement-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
         }
 
-        .back-home-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.5s;
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: #64748b;
         }
 
-        .back-home-btn:hover::before {
-            left: 100%;
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-subtext {
+            font-size: 0.95rem;
+            opacity: 0.8;
         }
 
         /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
-            background-color: rgba(26, 26, 46, 0.95);
-            margin: 5% auto;
-            padding: 2rem;
-            border: 1px solid #667eea;
-            border-radius: 10px;
-            width: 80%;
+            background: rgba(15, 23, 42, 0.95);
+            margin: 4% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
             max-width: 600px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            animation: modalSlideIn 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-50px);
+                transform: translateY(-30px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #f8fafc;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
         .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
+            color: #94a3b8;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
+            transition: color 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
         }
 
         .close:hover,
         .close:focus {
-            color: #fff;
-            text-decoration: none;
-            cursor: pointer;
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
         }
 
         /* 表单样式 */
@@ -326,103 +488,81 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #ffffff;
+            color: #f8fafc;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group textarea {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #667eea;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
+            padding: 0.9rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
             font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 150px;
+            line-height: 1.6;
         }
 
         /* 按钮样式 */
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 1.5rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
         .btn.cancel {
-            background: linear-gradient(45deg, #6c757d, #495057);
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .btn.cancel:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #a855f7, #9333ea);
             color: white;
-            margin-right: 1rem;
         }
 
-        .btn.delete {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #9333ea, #7e22ce);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        /* 公告操作按钮 */
-        .btn.announcement-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            margin-right: 0.5rem;
+        .btn.danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 1.5rem;
                 padding: 1rem;
-            }
-
-            .fas-logo {
-                font-size: 1.5rem;
             }
 
             nav ul {
-                gap: 1rem;
+                gap: 1.5rem;
             }
 
             .container {
-                padding: 1rem;
+                padding: 2rem 1rem;
             }
 
             .announcements {
@@ -430,21 +570,41 @@
             }
 
             .announcements h2 {
-                font-size: 1.5rem;
+                font-size: 1.8rem;
             }
 
-            .announcement-title {
-                font-size: 1.3rem;
+            .announcement-item {
+                padding: 1.5rem;
+            }
+
+            .announcement-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .announcement-actions {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 1.25rem;
             }
         }
 
         @media (max-width: 480px) {
             .fas-logo {
-                font-size: 1.3rem;
+                font-size: 1.5rem;
             }
 
             nav ul {
-                gap: 0.8rem;
+                gap: 1rem;
                 font-size: 0.9rem;
             }
 
@@ -466,7 +626,7 @@
     <!-- 头部 -->
     <header>
         <div class="fas-logo">Floating and Sinking</div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 2rem;">
             <nav>
                 <ul>
                     <li><a href="index.html">首页</a></li>
@@ -475,19 +635,31 @@
                     <li><a href="#about">关于</a></li>
                 </ul>
             </nav>
-            <button id="adminManageBtn" class="admin-login-btn" style="display: none;">账号管理</button>
-            <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
+            <div class="admin-actions">
+                <button id="adminManageBtn" class="admin-login-btn" style="display: none;">账号管理</button>
+                <button id="adminLoginBtn" class="admin-login-btn">管理员登录</button>
+            </div>
         </div>
     </header>
 
     <!-- 主要内容 -->
     <main class="container">
         <!-- 返回首页按钮 -->
-        <a href="index.html" class="back-home-btn">返回首页</a>
+        <a href="index.html" class="btn back-home-btn">
+            ← 返回首页
+        </a>
 
         <!-- 公告区域 -->
         <section class="announcements" id="announcements">
             <h2>公会公告列表</h2>
+            <p class="announcements-subtitle">查看公会的最新动态和重要通知</p>
+            
+            <!-- 发布公告按钮（管理员可见） -->
+            <button id="publishAnnouncementBtn" class="btn publish-btn admin-only" style="display: none;">
+                + 发布新公告
+            </button>
+            
+            <!-- 公告列表 -->
             <div class="announcements-list" id="announcementsList"></div>
         </section>
     </main>
@@ -495,66 +667,88 @@
     <!-- 公告编辑模态框 -->
     <div id="announcementModal" class="modal">
         <div class="modal-content">
-            <span class="close" id="closeAnnouncementModal">&times;</span>
-            <h2 id="announcementModalTitle">发布公告</h2>
-            <form id="announcementForm">
-                <div class="form-group">
-                    <label for="announcementTitle">标题</label>
-                    <input type="text" id="announcementTitle" name="announcementTitle" required>
-                </div>
-                <div class="form-group">
-                    <label for="announcementContent">内容</label>
-                    <textarea id="announcementContent" name="announcementContent" rows="5" required></textarea>
-                </div>
-                <div style="text-align: right; margin-top: 1rem;">
-                    <button type="button" class="btn cancel" onclick="closeAnnouncementModalFunc()">取消</button>
-                    <button type="submit" class="btn">保存</button>
-                </div>
-            </form>
+            <div class="modal-header">
+                <h2 id="announcementModalTitle">发布公告</h2>
+                <span class="close" id="closeAnnouncementModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="announcementForm">
+                    <div class="form-group">
+                        <label for="announcementTitle">标题</label>
+                        <input type="text" id="announcementTitle" name="announcementTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="announcementContent">内容</label>
+                        <textarea id="announcementContent" name="announcementContent" rows="6" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn cancel" onclick="closeAnnouncementModalFunc()">取消</button>
+                <button type="submit" class="btn primary" form="announcementForm">保存</button>
+            </div>
         </div>
     </div>
 
     <!-- 管理员登录模态框 -->
     <div id="adminLoginModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>管理员登录</h2>
-            <form id="adminLoginForm">
-                <div class="form-group">
-                    <label for="username">账号:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">密码:</label>
-                    <div style="position: relative;">
-                        <input type="password" id="password" name="password" required>
-                        <button type="button" id="togglePassword" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
-                            👁️
-                        </button>
+            <div class="modal-header">
+                <h2>管理员登录</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="username">账号</label>
+                        <input type="text" id="username" name="username" required>
                     </div>
-                </div>
-                <button type="submit" class="btn confirm">登录</button>
-            </form>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <div style="position: relative;">
+                            <input type="password" id="password" name="password" required>
+                            <button type="button" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 18px;">
+                                👁️
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn primary" form="adminLoginForm">登录</button>
+            </div>
         </div>
     </div>
 
     <!-- 登录消息模态框 -->
     <div id="loginMessageModal" class="modal">
         <div class="modal-content">
-            <h2 id="loginMessageTitle">登录消息</h2>
-            <div id="loginMessage"></div>
-            <button id="closeLoginMessageModal" class="btn confirm">确定</button>
+            <div class="modal-header">
+                <h2 id="loginMessageTitle">登录消息</h2>
+                <span class="close" id="closeLoginMessageModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="loginMessage"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeLoginMessageBtn" class="btn primary">确定</button>
+            </div>
         </div>
     </div>
 
     <!-- 确认对话框模态框 -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
-            <h2 id="confirmTitle">确认操作</h2>
-            <p id="confirmMessage"></p>
-            <div style="text-align: right; margin-top: 2rem;">
+            <div class="modal-header">
+                <h2 id="confirmTitle">确认操作</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
                 <button type="button" class="btn cancel" id="confirmCancelBtn">取消</button>
-                <button type="button" class="btn delete" id="confirmDeleteBtn">确定删除</button>
+                <button type="button" class="btn danger" id="confirmDeleteBtn">确定删除</button>
             </div>
         </div>
     </div>
@@ -562,71 +756,147 @@
     <!-- 删除成功提示模态框 -->
     <div id="successModal" class="modal">
         <div class="modal-content">
-            <h2>操作成功 <span class="close" id="closeSuccessModal">&times;</span></h2>
-            <p id="successMessage"></p>
-            <div style="text-align: right; margin-top: 2rem;">
-                <button type="button" class="btn" id="successOkBtn">确定</button>
+            <div class="modal-header">
+                <h2>操作成功</h2>
+                <span class="close" id="closeSuccessModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn primary" id="successOkBtn">确定</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 公告数据 - 从原页面提取的默认公告
-        let announcements = [
-            {
-                id: 1,
-                title: '公会招新',
-                content: '我们正在寻找热爱Minecraft PVP的玩家加入我们的团队！无论你是新手还是老手，只要你有热情和毅力，都欢迎加入我们！',
-                date: '2023-06-15'
-            },
-            {
-                id: 2,
-                title: 'PVP比赛通知',
-                content: '本周六将举行公会内部PVP比赛，奖品丰厚，欢迎大家积极参与！',
-                date: '2023-06-10'
-            },
-            {
-                id: 3,
-                title: '服务器更新',
-                content: '服务器已更新至最新版本，新增了一些PVP相关的插件和地图，欢迎大家体验！',
-                date: '2023-06-05'
+        // 公告数据
+        let announcements = [];
+        
+        // 当前编辑的公告索引
+        let currentEditIndex = -1;
+        let currentDeleteIndex = -1;
+        
+        // 管理员登录状态
+        let currentAdminUser = null;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载公告数据
+            loadAnnouncementsFromStorage();
+            renderAnnouncements();
+            
+            // 初始化管理员账号
+            initAdminAccounts();
+            
+            // 检查并恢复登录状态
+            checkLoginStatus();
+            
+            // 绑定事件监听器
+            bindEventListeners();
+        });
+        
+        // 绑定所有事件监听器
+        function bindEventListeners() {
+            // 管理员登录/退出按钮
+            const loginBtn = document.getElementById('adminLoginBtn');
+            loginBtn.addEventListener('click', function() {
+                if (AuthManager.isLoggedIn) {
+                    handleAdminLogout();
+                } else {
+                    openAdminLoginModal();
+                }
+            });
+            
+            // 账号管理按钮
+            const manageBtn = document.getElementById('adminManageBtn');
+            manageBtn.addEventListener('click', function() {
+                if (AuthManager.isLoggedIn) {
+                    window.location.href = 'admin_management.html';
+                }
+            });
+            
+            // 发布公告按钮
+            const publishBtn = document.getElementById('publishAnnouncementBtn');
+            publishBtn.addEventListener('click', function() {
+                openAnnouncementModal();
+            });
+            
+            // 管理员登录表单
+            const loginForm = document.getElementById('adminLoginForm');
+            loginForm.addEventListener('submit', handleAdminLogin);
+            
+            // 公告表单
+            const announcementForm = document.getElementById('announcementForm');
+            announcementForm.addEventListener('submit', saveAnnouncement);
+            
+            // 模态框关闭按钮
+            document.getElementById('closeAnnouncementModal').addEventListener('click', closeAnnouncementModalFunc);
+            document.getElementById('closeLoginMessageModal').addEventListener('click', closeLoginMessageModal);
+            document.getElementById('closeSuccessModal').addEventListener('click', () => closeModal('successModal'));
+            
+            // 确认对话框按钮
+            document.getElementById('confirmCancelBtn').addEventListener('click', () => closeModal('confirmModal'));
+            document.getElementById('confirmDeleteBtn').addEventListener('click', deleteAnnouncement);
+            
+            // 成功提示框按钮
+            document.getElementById('successOkBtn').addEventListener('click', () => closeModal('successModal'));
+            
+            // 登录消息模态框按钮
+            document.getElementById('closeLoginMessageBtn').addEventListener('click', closeLoginMessageModal);
+            
+            // 密码显示/隐藏
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            if (togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', function() {
+                    const passwordInput = document.getElementById('password');
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.textContent = type === 'password' ? '👁️' : '🙈';
+                });
             }
-        ];
-
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                const modals = ['announcementModal', 'adminLoginModal', 'loginMessageModal', 'confirmModal', 'successModal'];
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (event.target === modal) {
+                        closeModal(modalId);
+                    }
+                });
+            });
+            
+            // 监听localStorage变化，实现跨页面登录状态同步
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'adminToken' || event.key === 'currentAdminUser') {
+                    checkLoginStatus();
+                }
+            });
+        }
+        
         // 从本地存储加载公告数据
         function loadAnnouncementsFromStorage() {
             try {
                 const savedAnnouncements = localStorage.getItem('fasClubAnnouncements');
                 if (savedAnnouncements) {
                     announcements = JSON.parse(savedAnnouncements);
-                    // 验证加载的数据格式
+                    
+                    // 验证数据格式
                     if (!Array.isArray(announcements)) {
                         throw new Error('公告数据格式错误');
                     }
                     
-                    // 验证日期格式，修复格式不正确的日期
+                    // 确保所有公告都有必要的字段
                     announcements = announcements.map(announcement => {
                         // 确保公告有ID
                         if (!announcement.id) {
-                            announcement.id = Math.max(...announcements.map(a => a.id || 0)) + 1;
+                            announcement.id = generateUniqueId();
                         }
                         
-                        // 修复日期格式
-                        if (announcement.date && !/^\d{4}-\d{2}-\d{2}$/.test(announcement.date)) {
-                            const date = new Date(announcement.date);
-                            if (!isNaN(date.getTime())) {
-                                const year = date.getFullYear();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const day = String(date.getDate()).padStart(2, '0');
-                                announcement.date = `${year}-${month}-${day}`;
-                            } else {
-                                // 如果日期无效，使用当前日期
-                                const now = new Date();
-                                const year = now.getFullYear();
-                                const month = String(now.getMonth() + 1).padStart(2, '0');
-                                const day = String(now.getDate()).padStart(2, '0');
-                                announcement.date = `${year}-${month}-${day}`;
-                            }
+                        // 确保公告有日期
+                        if (!announcement.date) {
+                            announcement.date = getCurrentDate();
                         }
                         
                         return announcement;
@@ -634,21 +904,48 @@
                     
                     // 保存修复后的数据
                     localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
+                } else {
+                    // 使用默认公告数据
+                    announcements = [
+                        {
+                            id: 1,
+                            title: '公会招新',
+                            content: '我们正在寻找热爱Minecraft PVP的玩家加入我们的团队！无论你是新手还是老手，只要你有热情和毅力，都欢迎加入我们！',
+                            date: '2023-06-15'
+                        },
+                        {
+                            id: 2,
+                            title: 'PVP比赛通知',
+                            content: '本周六将举行公会内部PVP比赛，奖品丰厚，欢迎大家积极参与！',
+                            date: '2023-06-10'
+                        },
+                        {
+                            id: 3,
+                            title: '服务器更新',
+                            content: '服务器已更新至最新版本，新增了一些PVP相关的插件和地图，欢迎大家体验！',
+                            date: '2023-06-05'
+                        }
+                    ];
+                    localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
                 }
-                renderAnnouncements();
-                return true;
             } catch (error) {
                 console.error('加载公告数据失败:', error);
-                // 保留默认数据
-                renderAnnouncements();
+                // 使用默认数据
+                announcements = [];
+            }
+        }
+        
+        // 保存公告数据到本地存储
+        function saveAnnouncementsToStorage() {
+            try {
+                localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
+                return true;
+            } catch (error) {
+                console.error('保存公告数据失败:', error);
                 return false;
             }
         }
-
-        // 当前编辑的公告索引
-        let currentEditIndex = -1;
-        let currentDeleteIndex = -1;
-
+        
         // 渲染公告列表
         function renderAnnouncements() {
             const announcementsList = document.getElementById('announcementsList');
@@ -656,32 +953,61 @@
             
             // 如果没有公告
             if (announcements.length === 0) {
-                announcementsList.innerHTML = '<p style="text-align: center; color: #94a3b8; font-style: italic;">暂无公告</p>';
+                announcementsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📢</div>
+                        <div class="empty-state-text">暂无公告</div>
+                        <div class="empty-state-subtext">
+                            ${AuthManager.isLoggedIn ? '点击上方"发布新公告"按钮创建第一条公告' : '敬请期待公会的最新动态'}
+                        </div>
+                    </div>
+                `;
                 return;
             }
-
+            
             // 按日期降序排序公告（最新的在前面）
             const sortedAnnouncements = [...announcements].sort((a, b) => {
                 return new Date(b.date) - new Date(a.date);
             });
-
-            sortedAnnouncements.forEach((announcement, index) => {
+            
+            // 渲染每个公告
+            sortedAnnouncements.forEach(announcement => {
                 const announcementItem = document.createElement('div');
                 announcementItem.className = 'announcement-item';
+                
+                // 找到公告在原始数组中的索引
+                const originalIndex = announcements.findIndex(a => a.id === announcement.id);
+                
                 announcementItem.innerHTML = `
-                    <div class="announcement-title">${announcement.title}</div>
-                    <div class="announcement-date">发布时间: ${announcement.date}</div>
+                    <div class="announcement-header">
+                        <div>
+                            <div class="announcement-title">${announcement.title}</div>
+                            <div class="announcement-date">${formatDate(announcement.date)}</div>
+                        </div>
+                    </div>
                     <div class="announcement-content">${announcement.content}</div>
-                    <div style="margin-top: 1rem; text-align: right;">
-                          <button class="btn announcement-btn admin-only" onclick="editAnnouncement(${index})">编辑</button>
-                          <button class="btn delete announcement-btn admin-only" onclick="confirmDeleteAnnouncement(${index})">删除</button>
-                      </div>
+                    ${AuthManager.isLoggedIn ? `
+                        <div class="announcement-actions">
+                            <button class="btn" onclick="editAnnouncement(${originalIndex})">编辑公告</button>
+                            <button class="btn delete" onclick="confirmDeleteAnnouncement(${originalIndex})">删除公告</button>
+                        </div>
+                    ` : ''}
                 `;
+                
                 announcementsList.appendChild(announcementItem);
             });
         }
-
+        
         // 打开公告编辑模态框
+        function openAnnouncementModal() {
+            currentEditIndex = -1;
+            document.getElementById('announcementModalTitle').textContent = '发布公告';
+            document.getElementById('announcementForm').reset();
+            document.getElementById('announcementModal').style.display = 'block';
+            document.getElementById('announcementTitle').focus();
+        }
+        
+        // 编辑公告
         function editAnnouncement(index) {
             currentEditIndex = index;
             const announcement = announcements[index];
@@ -690,8 +1016,57 @@
             document.getElementById('announcementTitle').value = announcement.title;
             document.getElementById('announcementContent').value = announcement.content;
             document.getElementById('announcementModal').style.display = 'block';
+            document.getElementById('announcementTitle').focus();
         }
-
+        
+        // 关闭公告编辑模态框
+        function closeAnnouncementModalFunc() {
+            document.getElementById('announcementModal').style.display = 'none';
+            currentEditIndex = -1;
+        }
+        
+        // 保存公告（新增或编辑）
+        function saveAnnouncement(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('announcementTitle').value.trim();
+            const content = document.getElementById('announcementContent').value.trim();
+            
+            // 验证输入
+            if (!title || !content) {
+                showSuccessMessage('标题和内容不能为空');
+                return;
+            }
+            
+            const newAnnouncement = {
+                title: title,
+                content: content,
+                date: getCurrentDate()
+            };
+            
+            if (currentEditIndex === -1) {
+                // 新增公告
+                newAnnouncement.id = generateUniqueId();
+                announcements.push(newAnnouncement);
+            } else {
+                // 编辑公告
+                // 保留原有的ID和日期
+                newAnnouncement.id = announcements[currentEditIndex].id;
+                newAnnouncement.date = announcements[currentEditIndex].date;
+                announcements[currentEditIndex] = newAnnouncement;
+            }
+            
+            // 保存到本地存储
+            const saveResult = saveAnnouncementsToStorage();
+            if (saveResult) {
+                closeAnnouncementModalFunc();
+                renderAnnouncements();
+                showSuccessMessage(currentEditIndex === -1 ? '公告发布成功！' : '公告修改成功！');
+            } else {
+                showSuccessMessage('保存失败，请稍后重试');
+            }
+        }
+        
         // 打开删除确认模态框
         function confirmDeleteAnnouncement(index) {
             currentDeleteIndex = index;
@@ -700,160 +1075,61 @@
             document.getElementById('confirmMessage').textContent = `确定要删除公告 "${announcement.title}" 吗？此操作不可撤销。`;
             document.getElementById('confirmModal').style.display = 'block';
         }
-
-        // 关闭公告编辑模态框
-        function closeAnnouncementModalFunc() {
-            document.getElementById('announcementModal').style.display = 'none';
-            document.getElementById('announcementForm').reset();
-            currentEditIndex = -1;
-        }
-
-        // 关闭所有模态框
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // 显示成功提示模态框
-        function showSuccessMessage(message) {
-            document.getElementById('successMessage').textContent = message;
-            document.getElementById('successModal').style.display = 'block';
-        }
-
-        // 验证公告数据
-        function validateAnnouncementData(announcement) {
-            if (!announcement.title || announcement.title.trim() === '') {
-                return { valid: false, message: '公告标题不能为空' };
-            }
-            if (!announcement.content || announcement.content.trim() === '') {
-                return { valid: false, message: '公告内容不能为空' };
-            }
-            if (!announcement.date || !/^\d{4}-\d{2}-\d{2}$/.test(announcement.date)) {
-                return { valid: false, message: '公告日期格式不正确' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        // 保存公告（新增或编辑）
-        function saveAnnouncement(event) {
-            event.preventDefault();
-            
-            const title = document.getElementById('announcementTitle').value.trim();
-            const content = document.getElementById('announcementContent').value.trim();
-            
-            // 创建日期对象并格式化为YYYY-MM-DD格式
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-            
-            const newAnnouncement = {
-                title: title,
-                content: content,
-                date: dateStr
-            };
-            
-            // 验证公告数据
-            const validation = validateAnnouncementData(newAnnouncement);
-            if (!validation.valid) {
-                showSuccessMessage(validation.message);
-                return;
-            }
-            
-            if (currentEditIndex === -1) {
-                // 新增公告
-                // 为新公告分配ID
-                const nextId = announcements.length > 0 ? Math.max(...announcements.map(a => a.id)) + 1 : 1;
-                newAnnouncement.id = nextId;
-                announcements.push(newAnnouncement);
-            } else {
-                // 编辑公告
-                announcements[currentEditIndex] = { ...announcements[currentEditIndex], ...newAnnouncement };
-            }
-            
-            // 保存到本地存储 - 使用与index.html相同的键名
-            localStorage.setItem('fasClubAnnouncements', JSON.stringify(announcements));
-            localStorage.setItem('fasClubNextAnnouncementId', (Math.max(...announcements.map(a => a.id)) + 1).toString());
-            
-            // 关闭模态框并重新渲染公告列表
-            closeAnnouncementModalFunc();
-            renderAnnouncements();
-            
-            // 显示成功提示
-            showSuccessMessage(currentEditIndex === -1 ? '公告发布成功！' : '公告修改成功！');
-        }
-
+        
         // 删除公告
         function deleteAnnouncement() {
             if (currentDeleteIndex !== -1) {
-                // 删除公告
                 const deletedTitle = announcements[currentDeleteIndex].title;
                 announcements.splice(currentDeleteIndex, 1);
                 
                 // 保存到本地存储
-                localStorage.setItem('announcements', JSON.stringify(announcements));
-                
-                // 关闭模态框并重新渲染公告列表
-                closeModal('confirmModal');
-                renderAnnouncements();
-                
-                // 显示成功提示
-                showSuccessMessage(`公告 "${deletedTitle}" 删除成功！`);
-                
-                currentDeleteIndex = -1;
+                const saveResult = saveAnnouncementsToStorage();
+                if (saveResult) {
+                    closeModal('confirmModal');
+                    renderAnnouncements();
+                    showSuccessMessage(`公告 "${deletedTitle}" 删除成功！`);
+                } else {
+                    showSuccessMessage('删除失败，请稍后重试');
+                }
             }
+            currentDeleteIndex = -1;
         }
-
-        // 管理员登录状态
-        let isAdminLoggedIn = false;
-        let currentAdminUser = null;
         
-        // 初始化管理员账号
-        initAdminAccounts();
-
-        // 显示/隐藏管理功能
-        function toggleAdminFeatures() {
-            const adminButtons = document.querySelectorAll('.admin-only');
-            adminButtons.forEach(button => {
-                button.style.display = isAdminLoggedIn ? 'inline-block' : 'none';
-            });
-            
-            // 切换登录/退出按钮文本
-            const loginBtn = document.getElementById('adminLoginBtn');
-            loginBtn.textContent = isAdminLoggedIn ? '退出登录' : '管理员登录';
-            
-            // 显示/隐藏账号管理按钮
-            const manageBtn = document.getElementById('adminManageBtn');
-            manageBtn.style.display = isAdminLoggedIn ? 'inline-block' : 'none';
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
-
-        // 打开管理员登录模态框
-        function openAdminLoginModal() {
-            document.getElementById('adminLoginModal').style.display = 'block';
+        
+        // 显示成功提示
+        function showSuccessMessage(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').style.display = 'block';
         }
-
-        // 关闭管理员登录模态框
-        function closeAdminLoginModal() {
-            document.getElementById('adminLoginModal').style.display = 'none';
-            // 重置表单
-            document.getElementById('adminLoginForm').reset();
+        
+        // 生成唯一ID
+        function generateUniqueId() {
+            return Date.now() + Math.floor(Math.random() * 1000);
         }
-
-        // 显示登录消息模态框
-        function showLoginMessage(title, message, isSuccess) {
-            document.getElementById('loginMessageTitle').textContent = title;
-            const messageElement = document.getElementById('loginMessage');
-            messageElement.textContent = message;
-            messageElement.style.color = isSuccess ? '#4CAF50' : '#f44336';
-            document.getElementById('loginMessageModal').style.display = 'block';
+        
+        // 获取当前日期（YYYY-MM-DD格式）
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
-
-        // 关闭登录消息模态框
-        function closeLoginMessageModal() {
-            document.getElementById('loginMessageModal').style.display = 'none';
+        
+        // 格式化日期显示
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}年${month}月${day}日`;
         }
-
-        // 初始化管理员账号存储（如果不存在）
+        
+        // 管理员相关功能
         function initAdminAccounts() {
             const accounts = JSON.parse(localStorage.getItem('adminAccounts'));
             if (!accounts) {
@@ -864,36 +1140,16 @@
                 localStorage.setItem('adminAccounts', JSON.stringify(defaultAccounts));
             }
         }
-
-        // 获取所有管理员账号
+        
         function getAdminAccounts() {
             return JSON.parse(localStorage.getItem('adminAccounts')) || [];
         }
-
-        // 添加管理员账号
-        function addAdminAccount(username, password) {
-            const accounts = getAdminAccounts();
-            // 检查用户名是否已存在
-            if (accounts.find(account => account.username === username)) {
-                return false;
-            }
-            // 添加新账号
-            accounts.push({
-                username,
-                password,
-                createdAt: new Date().toISOString()
-            });
-            localStorage.setItem('adminAccounts', JSON.stringify(accounts));
-            return true;
-        }
-
-        // 验证管理员账号
+        
         function validateAdminAccount(username, password) {
             const accounts = getAdminAccounts();
             return accounts.find(account => account.username === username && account.password === password);
         }
-
-        // 生成随机Token
+        
         function generateToken() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let token = '';
@@ -903,12 +1159,36 @@
             return token;
         }
         
-        // 管理员登录处理
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'block';
+            document.getElementById('username').focus();
+        }
+        
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+            document.getElementById('adminLoginForm').reset();
+        }
+        
+        function showLoginMessage(title, message, isSuccess) {
+            document.getElementById('loginMessageTitle').textContent = title;
+            const messageElement = document.getElementById('loginMessage');
+            messageElement.textContent = message;
+            messageElement.style.color = isSuccess ? '#10b981' : '#ef4444';
+            messageElement.style.textAlign = 'center';
+            messageElement.style.fontSize = '1rem';
+            messageElement.style.padding = '1rem 0';
+            document.getElementById('loginMessageModal').style.display = 'block';
+        }
+        
+        function closeLoginMessageModal() {
+            document.getElementById('loginMessageModal').style.display = 'none';
+        }
+        
         function handleAdminLogin(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-
+            
             // 验证账号密码
             const account = validateAdminAccount(username, password);
             if (account) {
@@ -921,7 +1201,7 @@
                 localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
                 localStorage.setItem('currentAdminUser', JSON.stringify(account));
                 
-                isAdminLoggedIn = true;
+                AuthManager.login(username, password);
                 currentAdminUser = account;
                 
                 toggleAdminFeatures();
@@ -939,7 +1219,6 @@
             }
         }
         
-        // 管理员退出登录处理
         function handleAdminLogout() {
             // 记录退出日志
             logAdminAction('logout', `管理员 ${currentAdminUser.username} 退出登录`);
@@ -948,16 +1227,14 @@
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminTokenExpires');
             localStorage.removeItem('currentAdminUser');
-            localStorage.removeItem('isAdminLoggedIn');
-            
-            isAdminLoggedIn = false;
+            AuthManager.logout();
             currentAdminUser = null;
             
             toggleAdminFeatures();
             renderAnnouncements();
+            showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
         }
         
-        // 检查并恢复登录状态
         function checkLoginStatus() {
             const token = localStorage.getItem('adminToken');
             const expiresAt = localStorage.getItem('adminTokenExpires');
@@ -969,47 +1246,35 @@
                 
                 if (now < expiryDate) {
                     // 凭证有效
-                    isAdminLoggedIn = true;
+                    AuthManager.login(username, password);
                     currentAdminUser = JSON.parse(userData);
                     toggleAdminFeatures();
-                    
-                    // 记录日志
-                    logAdminAction('session_restored', `管理员 ${currentAdminUser.username} 会话恢复`);
                     return true;
                 } else {
                     // 凭证过期
                     handleAdminLogout();
-                    
-                    // 记录日志
-                    logAdminAction('session_expired', `管理员会话过期，用户：${JSON.parse(userData).username}`);
                     return false;
                 }
-            }
-            
-            // 兼容旧的登录状态
-            const oldLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-            const oldUser = localStorage.getItem('currentAdminUser');
-            if (oldLoggedIn && oldUser && typeof oldUser === 'string') {
-                // 迁移到新的token机制
-                const token = generateToken();
-                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                const account = { username: oldUser, password: '', createdAt: new Date().toISOString() };
-                
-                localStorage.setItem('adminToken', token);
-                localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
-                localStorage.setItem('currentAdminUser', JSON.stringify(account));
-                localStorage.removeItem('isAdminLoggedIn');
-                
-                isAdminLoggedIn = true;
-                currentAdminUser = account;
-                toggleAdminFeatures();
-                return true;
             }
             
             return false;
         }
         
-        // 记录管理员操作日志
+        function toggleAdminFeatures() {
+            const adminElements = document.querySelectorAll('.admin-only');
+            adminElements.forEach(element => {
+                element.style.display = AuthManager.isLoggedIn ? 'inline-block' : 'none';
+            });
+            
+            // 切换登录/退出按钮文本
+            const loginBtn = document.getElementById('adminLoginBtn');
+            loginBtn.textContent = AuthManager.isLoggedIn ? '退出登录' : '管理员登录';
+            
+            // 显示/隐藏账号管理按钮
+            const manageBtn = document.getElementById('adminManageBtn');
+            manageBtn.style.display = AuthManager.isLoggedIn ? 'inline-block' : 'none';
+        }
+        
         function logAdminAction(action, description) {
             // 获取现有日志
             const logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
@@ -1030,132 +1295,6 @@
             // 保存日志
             localStorage.setItem('adminLogs', JSON.stringify(logs));
         }
-
-        // 页面加载完成后渲染公告
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAnnouncementsFromStorage();
-            renderAnnouncements();
-            
-            // 初始化管理员账号
-            initAdminAccounts();
-            
-            // 检查并恢复登录状态
-            checkLoginStatus();
-
-            // 为管理员登录/退出按钮添加点击事件监听器
-            const loginBtn = document.getElementById('adminLoginBtn');
-            loginBtn.addEventListener('click', function() {
-                if (isAdminLoggedIn) {
-                    // 退出登录
-                    handleAdminLogout();
-                } else {
-                    // 打开登录模态框
-                    openAdminLoginModal();
-                }
-            });
-
-            // 为管理员登录表单添加提交事件监听器
-            const loginForm = document.getElementById('adminLoginForm');
-            loginForm.addEventListener('submit', handleAdminLogin);
-
-            // 为登录消息模态框的关闭按钮添加点击事件监听器
-            const closeLoginMessageBtn = document.getElementById('closeLoginMessage');
-            closeLoginMessageBtn.addEventListener('click', closeLoginMessageModal);
-
-            // 为密码显示/隐藏按钮添加点击事件监听器
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            if (togglePasswordBtn) {
-                togglePasswordBtn.addEventListener('click', function() {
-                    const passwordInput = document.getElementById('password');
-                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordInput.setAttribute('type', type);
-                    this.textContent = type === 'password' ? '👁️' : '🙈';
-                });
-            }
-
-            // 监听localStorage变化，实现跨页面登录状态同步
-            window.addEventListener('storage', function(event) {
-                if (event.key === 'adminToken' || event.key === 'currentAdminUser') {
-                    checkLoginStatus();
-                }
-            });
-                    showLoginMessage('退出成功', '您已成功退出管理员登录！', true);
-                } else {
-                    // 打开登录模态框
-                    openAdminLoginModal();
-                }
-            });
-            
-            // 为账号管理按钮添加点击事件监听器
-            const manageBtn = document.getElementById('adminManageBtn');
-            manageBtn.addEventListener('click', function() {
-                if (isAdminLoggedIn) {
-                    window.location.href = 'admin_management.html';
-                }
-            });
-            // 为管理员登录表单添加提交事件监听器
-            document.getElementById('adminLoginForm').addEventListener('submit', handleAdminLogin);
-            // 为登录模态框关闭按钮添加点击事件监听器
-            document.querySelector('#adminLoginModal .close').addEventListener('click', closeAdminLoginModal);
-            
-            // 为密码显示/隐藏按钮添加点击事件监听器
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            const passwordInput = document.getElementById('password');
-            togglePasswordBtn.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.textContent = type === 'password' ? '👁️' : '🙈';
-            });
-            // 为登录消息模态框关闭按钮添加点击事件监听器
-            document.getElementById('closeLoginMessageModal').addEventListener('click', closeLoginMessageModal);
-            
-            // 绑定表单提交事件
-            document.getElementById('announcementForm').addEventListener('submit', saveAnnouncement);
-            
-            // 绑定模态框关闭按钮事件
-            document.getElementById('closeAnnouncementModal').addEventListener('click', closeAnnouncementModalFunc);
-            document.getElementById('closeSuccessModal').addEventListener('click', () => closeModal('successModal'));
-            
-            // 绑定确认对话框按钮事件
-            document.getElementById('confirmCancelBtn').addEventListener('click', () => closeModal('confirmModal'));
-            document.getElementById('confirmDeleteBtn').addEventListener('click', deleteAnnouncement);
-            
-            // 绑定成功提示框按钮事件
-            document.getElementById('successOkBtn').addEventListener('click', () => closeModal('successModal'));
-            
-            // 点击模态框外部关闭模态框
-            window.addEventListener('click', function(event) {
-                const announcementModal = document.getElementById('announcementModal');
-                const confirmModal = document.getElementById('confirmModal');
-                const successModal = document.getElementById('successModal');
-                const loginMessageModal = document.getElementById('loginMessageModal');
-                if (event.target === announcementModal) {
-                    closeAnnouncementModalFunc();
-                } else if (event.target === confirmModal) {
-                    closeModal('confirmModal');
-                } else if (event.target === successModal) {
-                    closeModal('successModal');
-                } else if (event.target === loginMessageModal) {
-                    closeLoginMessageModal();
-                }
-            });
-
-            // 监听localStorage变化，实现跨页面登录状态同步
-            window.addEventListener('storage', function(event) {
-                if (event.key === 'loggedInAdmin') {
-                    if (event.newValue) {
-                        // 登录状态
-                        currentAdminUser = JSON.parse(event.newValue);
-                        isAdminLoggedIn = true;
-                        toggleAdminFeatures();
-                    } else {
-                        // 退出状态
-                        currentAdminUser = null;
-                        isAdminLoggedIn = false;
-                        toggleAdminFeatures();
-                    }
-                }
-            });
-        });</script>
+    </script>
 </body>
 </html>

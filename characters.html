@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人物列表 - Floating and Sinking 浮夜沉月</title>
+    <title>角色列表 - Floating and Sinking 浮夜沉月</title>
+    <script src="auth_manager.js"></script>
     <style>
         /* 基础样式重置 */
         * {
@@ -650,8 +651,7 @@
         // 检查管理员登录状态
         function checkAdminLogin() {
             const loggedInAdmin = localStorage.getItem('loggedInAdmin');
-            const isAdminLoggedIn = loggedInAdmin ? JSON.parse(loggedInAdmin) : false;
-            return isAdminLoggedIn;
+            return AuthManager.isLoggedIn;
         }
 
         // 渲染人物列表
@@ -664,7 +664,7 @@
                 return;
             }
             
-            const isAdminLoggedIn = checkAdminLogin();
+            const isAdminLoggedIn = AuthManager.isLoggedIn;
             
             characters.forEach(character => {
                 const characterItem = document.createElement('div');
@@ -691,7 +691,7 @@
                 }
                 
                 // 根据管理员登录状态决定是否显示修改和删除按钮
-                const actionButtons = isAdminLoggedIn ? `
+                const actionButtons = AuthManager.isLoggedIn ? `
                     <div style="margin-top: 1rem; text-align: right;">
                         <button class="btn" onclick="editCharacter(${character.id})">修改</button>
                         <button class="btn delete" onclick="deleteCharacter(${character.id})">删除</button>
@@ -876,7 +876,7 @@
     <script>
         // 管理员账号数据
         let adminAccounts = [];
-        let isAdminLoggedIn = false;
+
         let currentAdminUser = null;
 
         // 初始化管理员账号
@@ -900,7 +900,7 @@
             const adminLoginBtn = document.getElementById('adminLoginBtn');
             const adminManageBtn = document.getElementById('adminManageBtn');
             
-            if (isAdminLoggedIn) {
+            if (AuthManager.isLoggedIn) {
                 // 显示管理员功能
                 adminOnlyElements.forEach(element => {
                     element.style.display = 'block';
@@ -985,7 +985,7 @@
                 localStorage.setItem('adminTokenExpires', expiresAt.toISOString());
                 localStorage.setItem('currentAdminUser', JSON.stringify(account));
                 
-                isAdminLoggedIn = true;
+                AuthManager.login(username, password);
                 currentAdminUser = account;
                 
                 toggleAdminFeatures();
@@ -1013,7 +1013,7 @@
             localStorage.removeItem('adminTokenExpires');
             localStorage.removeItem('currentAdminUser');
             
-            isAdminLoggedIn = false;
+            AuthManager.logout();
             currentAdminUser = null;
             
             toggleAdminFeatures();
@@ -1032,7 +1032,7 @@
                 
                 if (now < expiryDate) {
                     // 凭证有效
-                    isAdminLoggedIn = true;
+                    AuthManager.login(username, password);
                     currentAdminUser = JSON.parse(userData);
                     toggleAdminFeatures();
                     
@@ -1083,7 +1083,7 @@
             // 登录按钮事件
             const adminLoginBtn = document.getElementById('adminLoginBtn');
             adminLoginBtn.addEventListener('click', function() {
-                if (isAdminLoggedIn) {
+                if (AuthManager.isLoggedIn) {
                     // 退出登录
                     handleAdminLogout();
                 } else {
